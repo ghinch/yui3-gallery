@@ -318,7 +318,6 @@ Y.extend(Form, Y.Widget, {
     },
 
     _handleIOFailure : function (ioResponse) {
-        alert('IO Error when submitting form');
         this.fire('failure', {response : ioResponse});
     },
 
