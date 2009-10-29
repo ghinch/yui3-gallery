@@ -308,7 +308,7 @@ Y.extend(Form, Y.Widget, {
                 isValid = false;
             }
         }
-                
+               
         return isValid;
     },
 
@@ -556,7 +556,6 @@ Y.extend(FormField, Y.Widget, {
             errorNode = Y.Node.create('<span>' + errMsg + '</span>');
         
         errorNode.addClass('error');
-        console.log(this._labelNode);
         contentBox.insertBefore(errorNode,this._labelNode);
         
         this._errorNode = errorNode;
@@ -588,7 +587,6 @@ Y.extend(FormField, Y.Widget, {
             this.showError('This field is required');
             return false;
         }
-
                             
         return validator.call(this, value);
     },
