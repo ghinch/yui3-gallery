@@ -11,7 +11,6 @@ function TextField () {
 
 Y.mix(TextField, {
     NAME : 'text-field'
-    
 });
 
 Y.extend(TextField, Y.FormField, {

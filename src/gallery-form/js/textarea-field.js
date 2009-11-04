@@ -10,8 +10,14 @@ function TextareaField () {
 }
 
 Y.mix(TextareaField, {
-    NAME : 'textarea-field'
-    
+    NAME : 'textarea-field',
+
+    /** 
+     * @property TextareaField.NODE_TEMPLATE
+     * @type String
+     * @description Template used to draw a textarea node
+     */
+    NODE_TEMPLATE : '<textarea></textarea>'
 });
 
 Y.extend(TextareaField, Y.FormField, {
@@ -20,7 +26,7 @@ Y.extend(TextareaField, Y.FormField, {
             field = contentBox.query('#' + this.get('id'));
                 
         if (!field) {
-            field = Y.Node.create(Y.substitute(FormField.TEXTAREA_TEMPLATE, {
+            field = Y.Node.create(Y.substitute(TextareaField.NODE_TEMPLATE, {
                 name : this.get('name'), 
                 type : 'text',
                 id : this.get('id'),

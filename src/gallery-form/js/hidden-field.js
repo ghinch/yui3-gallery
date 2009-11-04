@@ -10,11 +10,29 @@ function HiddenField () {
 }
 
 Y.mix(HiddenField, {
+	/**
+	 * @property HiddenField.NAME
+	 * @type String
+	 * @static
+	 */
     NAME : 'hidden-field',
 
+	/**
+	 * @property HiddenField.ATTRS
+	 * @type Object
+	 * @static
+	 */
 	ATTRS : {
+		/**
+		 * @attribute displayValue
+		 * @type Boolean
+		 * @default false
+		 * @writeOnce
+		 * @description Set to true to render this field with node displaying the current value
+		 */
 		displayValue : {
 			value : false,
+			writeOnce : true,
 			validator : Y.Lang.isBoolean
 		}
 	}
@@ -24,11 +42,15 @@ Y.mix(HiddenField, {
 Y.extend(HiddenField, Y.FormField, {
     _nodeType : 'hidden',
 
+	/**
+	 * @property _valueDisplayNode
+	 * @protected
+	 * @type Y.Node
+	 * @description Node used to display the value of this field
+	 */
 	_valueDisplayNode : null,
 
-	renderUI : function () {
-		HiddenField.superclass.renderUI.apply(this, arguments);
-		
+	_renderValueDisplayNode : function() {
 		if (this.get('displayValue') === true) {
 			var div = Y.Node.create('<div></div>'),
 				contentBox = this.get('contentBox');
@@ -36,6 +58,11 @@ Y.extend(HiddenField, Y.FormField, {
 			contentBox.appendChild(div);
 			this._valueDisplayNode = div;
 		}
+	},
+
+	renderUI : function () {
+		HiddenField.superclass.renderUI.apply(this, arguments);
+		this._renderValueDisplayNode();
 	},
 
 	bindUI : function () {

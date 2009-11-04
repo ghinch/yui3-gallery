@@ -11,7 +11,6 @@ function CheckboxField () {
 
 Y.mix(CheckboxField, {
     NAME : 'checkbox-field'
-    
 });
 
 Y.extend(CheckboxField, Y.FormField, {

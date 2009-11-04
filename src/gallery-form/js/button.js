@@ -34,20 +34,26 @@ Y.mix(Button, {
         }
     },
 
-    NODE_TEMPLATE : '<button id="{id}">{label}</button>'
+    NODE_TEMPLATE : '<button></button>'
 });
 
 Y.extend(Button, Y.FormField, {
     _renderButtonNode : function () {
         var contentBox = this.get('contentBox'), bn;
         
-        bn = Y.Node.create(Y.substitute(Button.NODE_TEMPLATE, {
-            label : this.get('label'),
-            id : this.get('id')
-        }));
+        bn = Y.Node.create(Button.NODE_TEMPLATE);
         contentBox.appendChild(bn);
         this._fieldNode = bn;
     },
+
+	_syncLabelNode: function () {},
+
+	_syncFieldNode : function () {
+		this._fieldNode.setAttrs({
+            innerHTML : this.get('label'),
+            id : this.get('id')
+        });
+	},
 
 	_setClickHandler : function () {
 		if (!this._fieldNode) {
@@ -65,10 +71,6 @@ Y.extend(Button, Y.FormField, {
 
 	bindUI : function () {
 		this.after('onclickChange', Y.bind(this._setClickHandler, this, true));
-	},
-
-	syncUI : function () {
-		Button.superclass.syncUI.apply(this, arguments);
 		this._setClickHandler();
 	}
 });
