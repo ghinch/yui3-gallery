@@ -1,0 +1,283 @@
+function RecordSet (data) {
+	this._uid = RecordSet.UID_PREFIX + RecordSet._count;
+	RecordSet._count++;
+
+	this._records = [];
+
+	if (data) {
+		if (Y.Lang.isArray(data)) {
+			this.addRecords(data);
+		} else if (Y.Lang.isObject(data)) {
+			this.addRecord(data);
+		}
+	}
+}
+
+RecordSet.prototype = {
+	_uid : null,
+
+	_addRecord : function (data, index) {
+		var record = new Y.Record(data);
+		if (Y.Lang.isNumber(index) && (index > -1)) {
+			this._records.splice(index, 0, record);
+		} else {
+			this._records.push(record);
+		}
+		return record;
+	},
+
+	_setRecord : function (data, index) {
+		if (!Y.Lang.isNumber(index) || index < 0) {
+			index = this._records.length;
+		}
+		return (this._records[index] = new Y.Record(data));
+	},
+
+	_deleteRecord : function (index, range) {
+		if (!Y.Lang.isNumber(range) || (range < 0)) {
+			range = 1;
+		}
+		this._records.splice(index, range);
+	},
+
+	getId : function () {
+		return this._uid;
+	},
+
+	getLength : function () {
+		return this._records.length;
+	},
+
+	getRecord : function (record) {
+		var i, len;
+		if (record instanceof Y.Record) {
+			for(i=0, len = this._records.length; i < len; i++) {
+				if(this._records[i] && (this._records[i].getId() == record.getId())) {
+					return record;
+				}
+			}
+		} else if (Y.Lang.isNumber(record)) {
+			if (record > -1 && (record < this._records.length)) {
+				return this._records[record];
+			}
+		} else if (Y.Lang.isString(record)) {
+			for (i = 0, len = this._records.length; i < len; i++) {
+				if(this._records[i] && (this._records[i].getId() == record)) {
+					return this._records[i];
+				}
+			}
+		}
+		return null;
+	},
+
+	getRecords : function(index, range) {
+		if(!Y.Lang.isNumber(index)) {
+			return this._records;
+		}
+		if(!Y.Lang.isNumber(range)) {
+			return this._records.slice(index);
+		}
+		return this._records.slice(index, index+range);
+	},
+
+	hasRecords : function (index, range) {
+		for (var i = 0; i < range; ++i) {
+			if (typeof this._records[i] === undefined) {
+				return false;
+			}
+		}
+		return true;
+	},
+
+	getRecordIndex : function(record) {
+		if(record) {
+			for(var i=this._records.length-1; i>-1; i--) {
+				if(this._records[i] && record.getId() === this._records[i].getId()) {
+					return i;
+				}
+			}
+		}
+		return null;
+	},
+
+	addRecord : function(data, index) {
+		if(Y.Lang.isObject(data)) {
+			var record = this._addRecord(data, index);
+			//this.fireEvent("recordAddEvent",{record:record,data:data});
+			return record;
+		}
+		return null;
+	},
+
+	addRecords : function(data, index) {
+		if(Y.Lang.isArray(data)) {
+			var newRecords = [],
+				idx,i,len, record;
+
+			index = Y.Lang.isNumber(index) ? index : this._records.length;
+			idx = index;
+
+			// Can't go backwards bc we need to preserve order
+			for(i=0,len=data.length; i<len; ++i) {
+				if(Y.Lang.isObject(data[i])) {
+					record = this._addRecord(data[i], idx++);
+					newRecords.push(record);
+				}
+		   }
+
+		   this.fireEvent("recordsAddEvent",{records:newRecords,data:data});
+		   return newRecords;
+		}
+		else if(Y.Lang.isObject(data)) {
+			record = this._addRecord(data);
+			this.fireEvent("recordsAddEvent",{records:[record],data:data});
+			return record;
+		}
+		return null;
+	},
+
+	setRecord : function(data, index) {
+		if(Y.Lang.isObject(data)) {
+			var record = this._setRecord(data, index);
+			this.fireEvent("recordSetEvent",{record:record,data:data});
+			return record;
+		}
+		return null;
+	},
+
+	setRecords : function(data, index) {
+		var a = Y.Lang.isArray(data) ? data : [data],
+			added = [],
+			i = 0, l = a.length, j = 0;
+
+		index = parseInt(index, 10)|0;
+
+		for(; i < l; ++i) {
+			if (typeof a[i] == 'object' && a[i]) {
+				added[j++] = this._records[index + i] = new Y.Record(a[i]);
+			}
+		}
+
+		this.fireEvent("recordsSetEvent",{records:added,data:data});
+		// Backward compatibility for bug 1918245
+		this.fireEvent("recordsSet",{records:added,data:data});
+
+		if (a.length && !added.length) {
+		   // YAHOO.log("Could not set Records with data " +
+		   //		  lang.dump(aData), "info", this.toString());
+		}
+
+		return added.length > 1 ? added : added[0];
+	},
+
+	updateRecord : function(record, data) {
+		record = this.getRecord(record);
+		if(record && Y.Lang.isObject(data)) {
+			// Copy data from the Record for the event that gets fired later
+			var oldData = Y.Object(record.getData()),
+				newData = record.setData(data);
+			this.fireEvent("recordUpdateEvent",{record : record, newData : newData, oldData : oldData});
+			//YAHOO.log("Record at index " + this.getRecordIndex(oRecord) +
+			//		  " updated with data " + lang.dump(oData), "info", this.toString());
+			return record;
+		}
+		   // YAHOO.log("Could not update Record " + record, "error", this.toString());
+		return null;
+	},
+
+	updateRecordValue : function(record, key, data) {
+		record = this.getRecord(record);
+		if(record) {
+			var oldData = null,
+				keyValue = record.getData(key);
+			// Copy data from the Record for the event that gets fired later
+			if(keyValue && Y.Lang.isObject(keyValue)) {
+				oldData = Y.Object(keyValue);
+			}
+			// Copy by value
+			else {
+				oldData = keyValue;
+			}
+
+			record.setData({key : key, value : data});
+			this.fireEvent("keyUpdateEvent", {record : record, key : key, newData : data, oldData : oldData});
+			this.fireEvent("recordValueUpdateEvent",{record : record, key : key, newData : data, oldData : oldData});
+			// YAHOO.log("Key \"" + sKey +
+			//		  "\" for Record at index " + this.getRecordIndex(roRecord) +
+			//		  " updated to \"" + lang.dump(oData) + "\"", "info", this.toString());
+		}
+		else {
+			// YAHOO.log("Could not update key " + sKey + " for Record " + record, "error", this.toString());
+		}
+	},
+
+	replaceRecords : function(data) {
+		this.reset();
+		return this.addRecords(data);
+	},
+
+	sortRecords : function(fnSort, desc, field) {
+		return this._records.sort(function(a, b) {return fnSort(a, b, desc, field);});
+	},
+
+	reverseRecords : function() {
+		return this._records.reverse();
+	},
+
+	deleteRecord : function(index) {
+		if(Y.Lang.isNumber(index) && (index > -1) && (index < this.getLength())) {
+			// Copy data from the Record for the event that gets fired later
+			var data = Y.Object(this.getRecord(index).getData());
+			
+			this._deleteRecord(index);
+			this.fireEvent("recordDeleteEvent",{datai : data, index : index});
+			// YAHOO.log("Record deleted at index " + index +
+			//		  " and containing data " + lang.dump(oData), "info", this.toString());
+			return data;
+		}
+		else {
+			// YAHOO.log("Could not delete Record at index " + index, "error", this.toString());
+			return null;
+		}
+	},
+
+	deleteRecords : function(index, range) {
+		if(!Y.Lang.isNumber(range)) {
+			range = 1;
+		}
+
+		if(Y.Lang.isNumber(index) && (index > -1) && (index < this.getLength())) {
+			var recordsToDelete = this.getRecords(index, range),
+			// Copy data from each Record for the event that gets fired later
+				deletedData = [], i = 0, len = recordsToDelete.length;
+			
+			for(; i<len; i++) {
+				deletedData[deletedData.length] = Y.Object(recordsToDelete[i]);
+			}
+			this._deleteRecord(index, range);
+
+			this.fireEvent("recordsDeleteEvent",{data : deletedData, index : index});
+		//	  YAHOO.log(range + "Record(s) deleted at index " + index +
+		//			  " and containing data " + lang.dump(deletedData), "info", this.toString());
+
+			return deletedData;
+		}
+		else {
+		//	  YAHOO.log("Could not delete Records at index " + index, "error", this.toString());
+			return null;
+		}
+	},
+
+	reset : function() {
+		this._records = [];
+		//this._length = 0;
+		this.fireEvent("resetEvent");
+		// YAHOO.log("All Records deleted from RecordSet", "info", this.toString());
+	}
+};
+
+RecordSet._count = 0;
+
+RecordSet.UID_PREFIX = 'yui-rs';
+
+Y.RecordSet = RecordSet;
