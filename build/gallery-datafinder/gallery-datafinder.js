@@ -368,7 +368,7 @@ Y.mix(DataFinder, {
 });
 
 Y.extend(DataFinder, Y.Base, {
-	_query : null,
+	_params : null,
 
 	_validateDataSource : function (val) {
 		if (val instanceof Y.DataSource.Local) {
@@ -380,21 +380,44 @@ Y.extend(DataFinder, Y.Base, {
 	initializer : function () {
 		this.publish('success');
 		this.publish('failure');
+
+		this._params = {};
 	},
 
-	setParam : function (param, value) {
-		if (typeof this._query === undefined || this._query === null) {
-			this._query = '';
+	generateQuery : function (params) {
+		var query = '',
+			key;
+		for (key in params) {
+			if (Y.Object.hasKey(params, key)) {
+				query += '&' + key + '=' + params[key];
+			}
 		}
+		return query;
+	},
 
-		this._query += '&' + param + '=' + value;
+	setParam : function (key, value) {
+		this._params[key] = value;
+	},
 
-		return this;
+	setParams : function (map) {
+		for (var key in map) {
+			if (Y.Object.hasKey(map, key)) {
+				this._params[key] = map[key];
+			}
+		}
+	},
+
+	clearParam : function (key) {
+		if (Y.Object.hasKey(this._params, key)) {
+			delete this._params[key];
+		}
 	},
 
 	fetch : function () {
-		var ds = this.get('dataSource');
-		ds.sendRequest(this._query, {
+		var ds = this.get('dataSource'),
+			query = this.generateQuery(this._params);
+
+		ds.sendRequest(query, {
 			success : function (args) {
 				var self = args.callback.argument,
 					rs;
@@ -406,10 +429,13 @@ Y.extend(DataFinder, Y.Base, {
 						records : rs, 
 						meta : args.response.meta
 					});
+				} else {
+					self.fire('failure', args);
 				}
 			}, 
 			failure : function (args) {
-				this.fire('failure', args);
+				var self = args.callback.argument;
+				self.fire('failure', args);
 			},
 			argument : this
 		});
