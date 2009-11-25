@@ -1,4 +1,4 @@
-YUI.add('gallery-recordset', function(Y) {
+YUI.add('gallery-datafinder', function(Y) {
 
 function Record (map) {
 	this._count = Record._count;
