@@ -13,8 +13,20 @@ function RecordSet (data) {
 	}
 }
 
-RecordSet.prototype = {
+Y.mix(RecordSet, {
+	NAME : 'recordset',
+
+	_count : 0,
+
+	UID_PREFIX : 'yui-rs'
+});
+
+Y.extend(RecordSet, Y.Base, {
 	_uid : null,
+
+	initialize : function () {
+		this.publish('');
+	},
 
 	_addRecord : function (data, index) {
 		var record = new Y.Record(data);
@@ -103,7 +115,7 @@ RecordSet.prototype = {
 	addRecord : function(data, index) {
 		if(Y.Lang.isObject(data)) {
 			var record = this._addRecord(data, index);
-			//this.fireEvent("recordAddEvent",{record:record,data:data});
+			//this.fire("recordAddEvent",{record:record,data:data});
 			return record;
 		}
 		return null;
@@ -125,12 +137,12 @@ RecordSet.prototype = {
 				}
 		   }
 
-		   this.fireEvent("recordsAddEvent",{records:newRecords,data:data});
+		   //this.fire("recordsAddEvent",{records:newRecords,data:data});
 		   return newRecords;
 		}
 		else if(Y.Lang.isObject(data)) {
 			record = this._addRecord(data);
-			this.fireEvent("recordsAddEvent",{records:[record],data:data});
+			//this.fire("recordsAddEvent",{records:[record],data:data});
 			return record;
 		}
 		return null;
@@ -139,7 +151,7 @@ RecordSet.prototype = {
 	setRecord : function(data, index) {
 		if(Y.Lang.isObject(data)) {
 			var record = this._setRecord(data, index);
-			this.fireEvent("recordSetEvent",{record:record,data:data});
+			//this.fire("recordSetEvent",{record:record,data:data});
 			return record;
 		}
 		return null;
@@ -158,9 +170,7 @@ RecordSet.prototype = {
 			}
 		}
 
-		this.fireEvent("recordsSetEvent",{records:added,data:data});
-		// Backward compatibility for bug 1918245
-		this.fireEvent("recordsSet",{records:added,data:data});
+		//this.fire("recordsSetEvent",{records:added,data:data});
 
 		if (a.length && !added.length) {
 		   // YAHOO.log("Could not set Records with data " +
@@ -176,7 +186,7 @@ RecordSet.prototype = {
 			// Copy data from the Record for the event that gets fired later
 			var oldData = Y.Object(record.getData()),
 				newData = record.setData(data);
-			this.fireEvent("recordUpdateEvent",{record : record, newData : newData, oldData : oldData});
+			//this.fire("recordUpdateEvent",{record : record, newData : newData, oldData : oldData});
 			//YAHOO.log("Record at index " + this.getRecordIndex(oRecord) +
 			//		  " updated with data " + lang.dump(oData), "info", this.toString());
 			return record;
@@ -200,8 +210,8 @@ RecordSet.prototype = {
 			}
 
 			record.setData({key : key, value : data});
-			this.fireEvent("keyUpdateEvent", {record : record, key : key, newData : data, oldData : oldData});
-			this.fireEvent("recordValueUpdateEvent",{record : record, key : key, newData : data, oldData : oldData});
+			// this.fire("keyUpdateEvent", {record : record, key : key, newData : data, oldData : oldData});
+			//this.fire("recordValueUpdateEvent",{record : record, key : key, newData : data, oldData : oldData});
 			// YAHOO.log("Key \"" + sKey +
 			//		  "\" for Record at index " + this.getRecordIndex(roRecord) +
 			//		  " updated to \"" + lang.dump(oData) + "\"", "info", this.toString());
@@ -230,7 +240,7 @@ RecordSet.prototype = {
 			var data = Y.Object(this.getRecord(index).getData());
 			
 			this._deleteRecord(index);
-			this.fireEvent("recordDeleteEvent",{datai : data, index : index});
+			//this.fire("recordDeleteEvent",{datai : data, index : index});
 			// YAHOO.log("Record deleted at index " + index +
 			//		  " and containing data " + lang.dump(oData), "info", this.toString());
 			return data;
@@ -256,7 +266,7 @@ RecordSet.prototype = {
 			}
 			this._deleteRecord(index, range);
 
-			this.fireEvent("recordsDeleteEvent",{data : deletedData, index : index});
+			//this.fire("recordsDeleteEvent",{data : deletedData, index : index});
 		//	  YAHOO.log(range + "Record(s) deleted at index " + index +
 		//			  " and containing data " + lang.dump(deletedData), "info", this.toString());
 
@@ -271,13 +281,9 @@ RecordSet.prototype = {
 	reset : function() {
 		this._records = [];
 		//this._length = 0;
-		this.fireEvent("resetEvent");
+		//this.fire("resetEvent");
 		// YAHOO.log("All Records deleted from RecordSet", "info", this.toString());
 	}
-};
-
-RecordSet._count = 0;
-
-RecordSet.UID_PREFIX = 'yui-rs';
+});
 
 Y.RecordSet = RecordSet;
