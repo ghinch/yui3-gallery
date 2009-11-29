@@ -426,7 +426,7 @@ Y.extend(DataFinder, Y.Base, {
 					rs.setRecords(args.response.results, 0);
 					self.fire('success', {
 						request : args.request, 
-						records : rs, 
+						recordset : rs, 
 						meta : args.response.meta
 					});
 				} else {

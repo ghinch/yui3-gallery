@@ -286,7 +286,13 @@ Y.extend(Form, Y.Widget, {
 					name : node.get('name'),
 					choices : c
 				};
-			}
+			} else if (nodeName == 'TEXTAREA') {
+				o = {
+					type: 'textarea',
+					name : node.get('name'),
+					value : node.get('innerHTML')
+				};
+			}		
 			
 			if (o) {
 				if (nodeId) {
@@ -390,9 +396,8 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_handleIOSuccess : function (ioId, ioResponse) {
 		if (typeof this._ioIds[ioId] != 'undefined') {
-			this.reset();
-			this.fire('success', {response : ioResponse});
 			delete this._ioIds[ioId];
+			this.fire('success', {response : ioResponse});
 		}
 	},
 
@@ -435,7 +440,7 @@ Y.extend(Form, Y.Widget, {
 				transaction, cfg;
 
 			Y.Array.each(fields, function (f, i, a) {
-				if (f.get('name') !== undefined) {
+				if (f.get('name') !== null) {
 					postData += encodeURIComponent(f.get('name')) + '=' +
 								(encodeURIComponent(f.get('value')) || '') + '&';
 				}
@@ -502,6 +507,10 @@ Y.extend(Form, Y.Widget, {
 			} else {
 				this._disableInlineValidation();
 			}
+		}, this));
+
+		this.after('success', Y.bind(function(e) {
+			this.reset();
 		}, this));
 
 		Y.on('io:success', Y.bind(this._handleIOSuccess, this));
