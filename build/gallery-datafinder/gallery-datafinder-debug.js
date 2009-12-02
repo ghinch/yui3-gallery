@@ -445,4 +445,4 @@ Y.extend(DataFinder, Y.Base, {
 Y.DataFinder = DataFinder;
 
 
-}, '@VERSION@' ,{requires:['yui']});
+}, '@VERSION@' ,{requires:['base', 'datasource-base']});

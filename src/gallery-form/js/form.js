@@ -227,7 +227,9 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_parseAction : function (contentBox) {
 		var form = contentBox.one('form');
-		return form.get('action');
+		if (form) {
+			return form.get('action');
+		}
 	},
 
 	/**
@@ -238,7 +240,9 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_parseMethod : function (contentBox) {
 		var form = contentBox.one('form');
-		return form.get('method');
+		if (form) {
+			return form.get('method');
+		}
 	},
 	
 	/**

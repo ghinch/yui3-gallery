@@ -229,7 +229,9 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_parseAction : function (contentBox) {
 		var form = contentBox.one('form');
-		return form.get('action');
+		if (form) {
+			return form.get('action');
+		}
 	},
 
 	/**
@@ -240,7 +242,9 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_parseMethod : function (contentBox) {
 		var form = contentBox.one('form');
-		return form.get('method');
+		if (form) {
+			return form.get('method');
+		}
 	},
 	
 	/**
@@ -1571,6 +1575,10 @@ Y.extend(SelectField, Y.ChoiceField, {
         var choices = this.get('choices'),
             elOption;
        
+		// Create the "Choose one" option
+		elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
+		this._fieldNode.appendChild(elOption);
+
 		Y.Array.each(choices, function (c, i, a) {
 			elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
             this._fieldNode.appendChild(elOption);

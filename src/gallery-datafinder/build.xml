@@ -2,8 +2,8 @@
 
 <!-- YUI 3 Component Build File -->
 
-<project name="Record Set" default="local">
-    <description>Gallery Record Set Build File</description>
+<project name="Gallery Data Finder" default="local">
+    <description>Gallery Data Finder Build File</description>
     <property file="build.properties" />
     <import file="${builddir}/3.x/bootstrap.xml" description="Default Build Properties and Targets" />
 </project>
