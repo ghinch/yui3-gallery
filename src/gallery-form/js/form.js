@@ -189,6 +189,8 @@ Y.extend(Form, Y.Widget, {
 						fieldType = Y.HiddenField;
 					} else if (t == 'checkbox') {
 						fieldType = Y.CheckboxField;
+					} else if (t == 'password') {
+						fieldType = Y.PasswordField;
 					} else if (t == 'textarea') {
 						fieldType = Y.TextareaField;
 					} else if (t == 'select') {

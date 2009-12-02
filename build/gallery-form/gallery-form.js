@@ -191,6 +191,8 @@ Y.extend(Form, Y.Widget, {
 						fieldType = Y.HiddenField;
 					} else if (t == 'checkbox') {
 						fieldType = Y.CheckboxField;
+					} else if (t == 'password') {
+						fieldType = Y.PasswordField;
 					} else if (t == 'textarea') {
 						fieldType = Y.TextareaField;
 					} else if (t == 'select') {
@@ -1210,6 +1212,26 @@ Y.extend(TextField, Y.FormField, {
 });
 
 Y.TextField = TextField;
+/**
+ * @class PasswordField
+ * @extends FormField
+ * @param config {Object} Configuration object
+ * @constructor
+ * @description A password field node
+ */
+function PasswordField () {
+    PasswordField.superclass.constructor.apply(this,arguments);
+}
+
+Y.mix(PasswordField, {
+    NAME : 'password-field'
+});
+
+Y.extend(PasswordField, Y.FormField, {
+    _nodeType : 'password'
+});
+
+Y.PasswordField = PasswordField;
 /**
  * @class CheckboxField
  * @extends FormField
