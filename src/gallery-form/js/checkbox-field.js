@@ -10,18 +10,29 @@ function CheckboxField () {
 }
 
 Y.mix(CheckboxField, {
-    NAME : 'checkbox-field'
+    NAME : 'checkbox-field',
+
+	ATTRS : {
+		'checked' : {
+			value : false,
+			validator : Y.Lang.isBoolean
+		}
+	}
 });
 
 Y.extend(CheckboxField, Y.FormField, {
     _nodeType : 'checkbox',
 
 	_getValue : function (val, attrname) {
-		if (this._fieldNode.get('checked') === true) {
+		if (this.get('checked') === true) {
 			return val;
 		} else {
 			return '';
 		}
+	},
+
+	_syncChecked : function () {
+		this._fieldNode.set('checked', this.get('checked'));
 	},
 
 	initializer : function () {
@@ -33,6 +44,29 @@ Y.extend(CheckboxField, Y.FormField, {
 			},
 			writeOnce : true
 		});
+	},
+
+	renderUI : function () {
+		this._renderFieldNode();
+		this._renderLabelNode();
+	},
+
+	syncUI : function () {
+		CheckboxField.superclass.syncUI.apply(this, arguments);
+		this._syncChecked();
+	},
+
+	bindUI :function () {
+		CheckboxField.superclass.bindUI.apply(this, arguments);
+		this.after('checkedChange', Y.bind(function(e) {
+			if (e.src != 'ui') {
+				this._fieldNode.set('checked', e.newVal);
+			}
+		}, this));
+
+		this._fieldNode.after('change', Y.bind(function (e) {
+			this.set('checked', e.currentTarget.get('checked'), {src : 'ui'});
+		}, this));
 	}
 });
 

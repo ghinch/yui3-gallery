@@ -268,7 +268,8 @@ Y.extend(Form, Y.Widget, {
 				o = {
 					type: node.get('type'),
 					name : node.get('name'),
-					value : node.get('value')
+					value : node.get('value'),
+					checked : node.get('checked')
 				};
 
 				if (o.type == 'submit' || o.type == 'reset' || o.type == 'button') {
@@ -430,6 +431,7 @@ Y.extend(Form, Y.Widget, {
 		var fields = this.get('fields');
 		Y.Array.each(fields, function (f, i, a) {
 			f.clear();
+			f.set('error', null);
 		});
 	},
 	
@@ -665,7 +667,7 @@ Y.mix(FormField, {
 	 * @type Number
 	 * @description The current tab index of all FormField instances
 	 */
-	tabIndex : 0,
+	tabIndex : 1,
 	
 	/**
 	 * @method FormField.VALIDATE_EMAIL_ADDRESS
@@ -1028,6 +1030,7 @@ Y.extend(FormField, Y.Widget, {
 			id : this.get('id'),
 			value : this.get('value')
 		});
+		
 		this._fieldNode.setAttribute('tabindex', FormField.tabIndex);
 		FormField.tabIndex++;
 	},
@@ -1112,6 +1115,8 @@ Y.extend(FormField, Y.Widget, {
 		if (!this._checkRequired()) {
 			this.set('error', 'This field is required');
 			return false;
+		} else if (!value) {
+			return true;
 		}
 							
 		return validator.call(this, value, this);
@@ -1244,18 +1249,29 @@ function CheckboxField () {
 }
 
 Y.mix(CheckboxField, {
-    NAME : 'checkbox-field'
+    NAME : 'checkbox-field',
+
+	ATTRS : {
+		'checked' : {
+			value : false,
+			validator : Y.Lang.isBoolean
+		}
+	}
 });
 
 Y.extend(CheckboxField, Y.FormField, {
     _nodeType : 'checkbox',
 
 	_getValue : function (val, attrname) {
-		if (this._fieldNode.get('checked') === true) {
+		if (this.get('checked') === true) {
 			return val;
 		} else {
 			return '';
 		}
+	},
+
+	_syncChecked : function () {
+		this._fieldNode.set('checked', this.get('checked'));
 	},
 
 	initializer : function () {
@@ -1267,10 +1283,53 @@ Y.extend(CheckboxField, Y.FormField, {
 			},
 			writeOnce : true
 		});
+	},
+
+	renderUI : function () {
+		this._renderFieldNode();
+		this._renderLabelNode();
+	},
+
+	syncUI : function () {
+		CheckboxField.superclass.syncUI.apply(this, arguments);
+		this._syncChecked();
+	},
+
+	bindUI :function () {
+		CheckboxField.superclass.bindUI.apply(this, arguments);
+		this.after('checkedChange', Y.bind(function(e) {
+			if (e.src != 'ui') {
+				this._fieldNode.set('checked', e.newVal);
+			}
+		}, this));
+
+		this._fieldNode.after('change', Y.bind(function (e) {
+			this.set('checked', e.currentTarget.get('checked'), {src : 'ui'});
+		}, this));
 	}
 });
 
 Y.CheckboxField = CheckboxField;
+/**
+ * @class RadioField
+ * @extends CheckboxField
+ * @param config {Object} Configuration object
+ * @constructor
+ * @description A Radio field node
+ */
+function RadioField () {
+    RadioField.superclass.constructor.apply(this,arguments);
+}
+
+Y.mix(RadioField, {
+    NAME : 'radio-field'
+});
+
+Y.extend(RadioField, Y.CheckboxField, {
+    _nodeType : 'radio'
+});
+
+Y.RadioField = RadioField;
 /**
  * @class HiddenField
  * @extends FormField
@@ -1346,7 +1405,9 @@ Y.extend(HiddenField, Y.FormField, {
 				this._valueDisplayNode.set('innerHTML', e.newVal);
 			}, this, true));
 		}
-	}
+	},
+
+	clear : function () {}
 });
 
 Y.HiddenField = HiddenField;
@@ -1447,23 +1508,27 @@ Y.extend(ChoiceField, Y.FormField, {
             return false;
         }
 		
-		var valid = true;
-
-		Y.Array.each(val, function(c, i, a) {
-            if (!Y.Lang.isObject(c)) {
-                valid = false;
-				return;
+		var i = 0, len = val.length;
+		
+		for (; i < len; i++) {
+            if (!Y.Lang.isObject(val[i])) {
+                delete val[i];
+				continue;
             }
-            if (!c.label ||
-                !Y.Lang.isString(c.label) ||
-                !c.value ||
-                !Y.Lang.isString(c.value)) {
-					valid = false;
-					return;
+            if (!val[i].label ||
+                !Y.Lang.isString(val[i].label) ||
+                !val[i].value ||
+                !Y.Lang.isString(val[i].value)) {
+					delete val[i];
+					continue;
             }
-        });
+        }
+		
+		if (val.length === 0) {
+			return false;
+		}
 
-        return valid;
+        return true;
     },
 
     _renderLabelNode : function () {
@@ -1477,47 +1542,26 @@ Y.extend(ChoiceField, Y.FormField, {
     
     _renderFieldNode : function () {
         var contentBox = this.get('contentBox'),
-            choices = this.get('choices'),
-            elLabel, elField;
+            choices = this.get('choices');
        
 		Y.Array.each(choices, function(c, i, a) {
-            elLabel = Y.Node.create(FormField.LABEL_TEMPLATE);
-            contentBox.appendChild(elLabel);
-            
-            elField = Y.Node.create(FormField.INPUT_TEMPLATE);
-            contentBox.appendChild(elField);
-        });
+			var cfg = {
+					value : c.value,
+					id : (this.get('id') + '_choice' + i),
+					name : this.get('name'),
+					label : c.label
+				},
+				fieldType = (this.get('multiple') === true ? Y.CheckboxField : Y.RadioField),
+				field = new fieldType(cfg);
+			
+			field.render(contentBox);
+        }, this);
 
 		this._fieldNode = contentBox.all('input');
     },
 
-	_syncFieldNode : function () {
-		var choices = this.get('choices'),
-			contentBox = this.get('contentBox'),
-			labels = contentBox.all('label'),
-			choiceType = (this.get('multiple') === true ? 'checkbox' : 'radio');
+	_syncFieldNode : function () {},
 
-		labels.each(function (node, index, list) {
-			node.setAttrs({
-				innerHTML : choices[index].label
-			});
-			node.setAttribute('for', (this.get('id') + '_choice' + index));
-		}, this);
-
-		this._fieldNode.each(function (node, index, list) {
-			node.setAttrs({
-				value : choices[index].value,
-				id : (this.get('id') + '_choice' + index),
-				name : this.get('name'),
-				type : choiceType
-			});
-
-			// Setting value above doesn't seem to work (bug?), this forces it
-			var domNode = Y.Node.getDOMNode(node);
-			domNode.value = choices[index].value;
-		}, this);
-	},
-            
     clear : function () {
         this._fieldNode.each(function (node, index, list) {
             node.setAttribute('checked', false);
@@ -1613,9 +1657,9 @@ Y.extend(SelectField, Y.ChoiceField, {
 	 * @description Syncs the select node with the instance attributes
 	 */
 	_syncFieldNode : function () {
+		SelectField.superclass.constructor.superclass._syncFieldNode.apply(this, arguments);
+
 		this._fieldNode.setAttrs({
-			name : this.get('name'), 
-			id : this.get('id'),
 			multiple : (this.get('multiple') === true ? 'multiple' : '')
 		});
 	},

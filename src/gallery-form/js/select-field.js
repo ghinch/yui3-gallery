@@ -72,9 +72,9 @@ Y.extend(SelectField, Y.ChoiceField, {
 	 * @description Syncs the select node with the instance attributes
 	 */
 	_syncFieldNode : function () {
+		SelectField.superclass.constructor.superclass._syncFieldNode.apply(this, arguments);
+
 		this._fieldNode.setAttrs({
-			name : this.get('name'), 
-			id : this.get('id'),
 			multiple : (this.get('multiple') === true ? 'multiple' : '')
 		});
 	},

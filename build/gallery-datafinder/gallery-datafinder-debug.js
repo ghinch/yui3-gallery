@@ -389,7 +389,7 @@ Y.extend(DataFinder, Y.Base, {
 			key;
 		for (key in params) {
 			if (Y.Object.hasKey(params, key)) {
-				query += '&' + key + '=' + params[key];
+				query += key + '/' + params[key] + '/';
 			}
 		}
 		return query;

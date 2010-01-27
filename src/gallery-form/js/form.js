@@ -266,7 +266,8 @@ Y.extend(Form, Y.Widget, {
 				o = {
 					type: node.get('type'),
 					name : node.get('name'),
-					value : node.get('value')
+					value : node.get('value'),
+					checked : node.get('checked')
 				};
 
 				if (o.type == 'submit' || o.type == 'reset' || o.type == 'button') {
@@ -428,6 +429,7 @@ Y.extend(Form, Y.Widget, {
 		var fields = this.get('fields');
 		Y.Array.each(fields, function (f, i, a) {
 			f.clear();
+			f.set('error', null);
 		});
 	},
 	

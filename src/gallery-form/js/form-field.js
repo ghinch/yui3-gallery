@@ -131,7 +131,7 @@ Y.mix(FormField, {
 	 * @type Number
 	 * @description The current tab index of all FormField instances
 	 */
-	tabIndex : 0,
+	tabIndex : 1,
 	
 	/**
 	 * @method FormField.VALIDATE_EMAIL_ADDRESS
@@ -495,6 +495,7 @@ Y.extend(FormField, Y.Widget, {
 			id : this.get('id'),
 			value : this.get('value')
 		});
+		
 		this._fieldNode.setAttribute('tabindex', FormField.tabIndex);
 		FormField.tabIndex++;
 	},
@@ -579,6 +580,8 @@ Y.extend(FormField, Y.Widget, {
 		if (!this._checkRequired()) {
 			this.set('error', 'This field is required');
 			return false;
+		} else if (!value) {
+			return true;
 		}
 							
 		return validator.call(this, value, this);
