@@ -313,13 +313,6 @@ Y.mix(FormField, {
 	INPUT_TEMPLATE : '<input>',
 	
 	/**
-	 * @property FormField.TEXTAREA_TEMPLATE
-	 * @type String
-	 * @description Template used to draw a textarea node
-	 */
-	TEXTAREA_TEMPLATE : '<textarea></textarea>',
-	
-	/**
 	 * @property FormField.LABEL_TEMPLATE
 	 * @type String
 	 * @description Template used to draw a label node
@@ -327,11 +320,11 @@ Y.mix(FormField, {
 	LABEL_TEMPLATE : '<label></label>',
 
 	/**
-	 * @property FormField.SELECT_TEMPLATE
+	 * @property FormField.REQUIRED_ERROR_TEXT
 	 * @type String
-	 * @description Template used to draw a select node
+	 * @description Error text to display for a required field
 	 */
-	SELECT_TEMPLATE : '<select></select>'
+	REQUIRED_ERROR_TEXT : 'This field is required'
 });
 
 Y.extend(FormField, Y.Widget, {
@@ -578,7 +571,7 @@ Y.extend(FormField, Y.Widget, {
 		}
 
 		if (!this._checkRequired()) {
-			this.set('error', 'This field is required');
+			this.set('error', FormField.REQUIRED_ERROR_TEXT);
 			return false;
 		} else if (!value) {
 			return true;
@@ -594,12 +587,14 @@ Y.extend(FormField, Y.Widget, {
 	 clear : function () {
 		this.set('value', '');
 		this._fieldNode.set('value', '');
+		this.fire('clear');
 	},
 
 	initializer : function () {
 		this.publish('blur');
 		this.publish('change');
 		this.publish('focus');
+		this.publish('clear');
 	},
 
 	destructor : function (config) {

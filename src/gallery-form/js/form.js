@@ -78,7 +78,7 @@ Y.mix(Form, {
 		},
 
 		/**
-		 * @attribute oftValidation
+		 * @attribute inlineValidation
 		 * @type Boolean
 		 * @description Set to true to validate fields "on the fly", where they will
 		 *				validate themselves any time the value attribute is changed
@@ -86,6 +86,26 @@ Y.mix(Form, {
 		inlineValidation : {
 			value : false,
 			validator : Y.Lang.isBoolean
+		},
+
+		/**
+		 * @attribute resetAfterSubmit
+		 * @type Boolean
+		 * @description If true, the form is reset following a successful submit event 
+		 */
+		resetAfterSubmit : {
+			value : true,
+			validator : Y.Lang.isBoolean
+		},
+
+		/**
+		 * @attribute encodingType
+		 * @type Number
+		 * @description Set to Form.MULTIPART_ENCODED in order to use the FileField for uploads
+		 */
+		encodingType : {
+			value : Form.URL_ENCODED,
+			validator : Y.Lang.isNumber
 		}
 	},
 
@@ -112,7 +132,21 @@ Y.mix(Form, {
 	 * @static
 	 * @description The HTML used to create the form Node
 	 */
-	FORM_TEMPLATE : '<form></form>'
+	FORM_TEMPLATE : '<form></form>',
+
+	/**
+	 * @property Form.URL_ENCODED
+	 * @type Number
+	 * @description Set the form the default text encoding
+	 */
+	URL_ENCODED : 1,
+
+	/**
+	 * @property Form.MULTIPART_ENCODED
+	 * @type Number
+	 * @description Set form to multipart/form-data encoding for file uploads
+	 */
+	MULTIPART_ENCODED : 2
 });
 
 Y.extend(Form, Y.Widget, {
@@ -189,6 +223,8 @@ Y.extend(Form, Y.Widget, {
 						fieldType = Y.HiddenField;
 					} else if (t == 'checkbox') {
 						fieldType = Y.CheckboxField;
+					} else if (t == 'radio') {
+						fieldType = Y.RadioField;
 					} else if (t == 'password') {
 						fieldType = Y.PasswordField;
 					} else if (t == 'textarea') {
@@ -197,6 +233,8 @@ Y.extend(Form, Y.Widget, {
 						fieldType = Y.SelectField;
 					} else if (t == 'choice') {
 						fieldType = Y.ChoiceField;
+					} else if (t == 'file') {
+						fieldType = Y.FileField;
 					} else if (t == 'button' || t == 'submit' || t == 'reset') {
 						fieldType = Y.Button;
 						if (t =='submit') {
@@ -356,7 +394,11 @@ Y.extend(Form, Y.Widget, {
 			action : this.get('action'),
 			method : this.get('method'),
 			id : this.get('id')
-		});    
+		});
+
+		if (this.get('encodingType') === Form.MULTIPART_ENCODED) {
+			this._formNode.setAttribute('enctype', 'multipart/form-data');
+		}
 	},
 	
 	/**
@@ -454,7 +496,8 @@ Y.extend(Form, Y.Widget, {
 
 			cfg = {
 				method : formMethod,
-				data : postData
+				data : postData,
+				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
 			};
 
 			transaction = Y.io(formAction, cfg);
@@ -516,7 +559,9 @@ Y.extend(Form, Y.Widget, {
 		}, this));
 
 		this.after('success', Y.bind(function(e) {
-			this.reset();
+			if (this.get('resetAfterSubmit' === true)) {
+				this.reset();
+			}
 		}, this));
 
 		Y.on('io:success', Y.bind(this._handleIOSuccess, this));

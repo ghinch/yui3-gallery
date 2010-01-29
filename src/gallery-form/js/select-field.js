@@ -24,7 +24,14 @@ Y.mix(SelectField, {
 	 * @type String
 	 * @description Template used to draw an option node
 	 */
-	 OPTION_TEMPLATE : '<option></option>'
+	OPTION_TEMPLATE : '<option></option>',
+
+	/**
+	 * @property SelectField.DEFAULT_OPTION_TEXT
+	 * @type String
+	 * @description The display title of the default choice in the select box
+	 */
+	DEFAULT_OPTION_TEXT : 'Choose one'
 });
 
 Y.extend(SelectField, Y.ChoiceField, {
@@ -90,7 +97,7 @@ Y.extend(SelectField, Y.ChoiceField, {
 			options = contentBox.all('option');
 
 		options.each(function(node, index, nodeList) {
-			var label = (index === 0 ? 'Choose one' : choices[index - 1].label),
+			var label = (index === 0 ? SelectField.DEFAULT_OPTION_TEXT : choices[index - 1].label),
 				val = (index === 0 ? '' : choices[index - 1].value);
 
 			node.setAttrs({

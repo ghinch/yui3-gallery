@@ -80,7 +80,7 @@ Y.mix(Form, {
 		},
 
 		/**
-		 * @attribute oftValidation
+		 * @attribute inlineValidation
 		 * @type Boolean
 		 * @description Set to true to validate fields "on the fly", where they will
 		 *				validate themselves any time the value attribute is changed
@@ -88,6 +88,26 @@ Y.mix(Form, {
 		inlineValidation : {
 			value : false,
 			validator : Y.Lang.isBoolean
+		},
+
+		/**
+		 * @attribute resetAfterSubmit
+		 * @type Boolean
+		 * @description If true, the form is reset following a successful submit event 
+		 */
+		resetAfterSubmit : {
+			value : true,
+			validator : Y.Lang.isBoolean
+		},
+
+		/**
+		 * @attribute encodingType
+		 * @type Number
+		 * @description Set to Form.MULTIPART_ENCODED in order to use the FileField for uploads
+		 */
+		encodingType : {
+			value : Form.URL_ENCODED,
+			validator : Y.Lang.isNumber
 		}
 	},
 
@@ -114,7 +134,21 @@ Y.mix(Form, {
 	 * @static
 	 * @description The HTML used to create the form Node
 	 */
-	FORM_TEMPLATE : '<form></form>'
+	FORM_TEMPLATE : '<form></form>',
+
+	/**
+	 * @property Form.URL_ENCODED
+	 * @type Number
+	 * @description Set the form the default text encoding
+	 */
+	URL_ENCODED : 1,
+
+	/**
+	 * @property Form.MULTIPART_ENCODED
+	 * @type Number
+	 * @description Set form to multipart/form-data encoding for file uploads
+	 */
+	MULTIPART_ENCODED : 2
 });
 
 Y.extend(Form, Y.Widget, {
@@ -191,6 +225,8 @@ Y.extend(Form, Y.Widget, {
 						fieldType = Y.HiddenField;
 					} else if (t == 'checkbox') {
 						fieldType = Y.CheckboxField;
+					} else if (t == 'radio') {
+						fieldType = Y.RadioField;
 					} else if (t == 'password') {
 						fieldType = Y.PasswordField;
 					} else if (t == 'textarea') {
@@ -199,6 +235,8 @@ Y.extend(Form, Y.Widget, {
 						fieldType = Y.SelectField;
 					} else if (t == 'choice') {
 						fieldType = Y.ChoiceField;
+					} else if (t == 'file') {
+						fieldType = Y.FileField;
 					} else if (t == 'button' || t == 'submit' || t == 'reset') {
 						fieldType = Y.Button;
 						if (t =='submit') {
@@ -358,7 +396,11 @@ Y.extend(Form, Y.Widget, {
 			action : this.get('action'),
 			method : this.get('method'),
 			id : this.get('id')
-		});    
+		});
+
+		if (this.get('encodingType') === Form.MULTIPART_ENCODED) {
+			this._formNode.setAttribute('enctype', 'multipart/form-data');
+		}
 	},
 	
 	/**
@@ -456,7 +498,8 @@ Y.extend(Form, Y.Widget, {
 
 			cfg = {
 				method : formMethod,
-				data : postData
+				data : postData,
+				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
 			};
 
 			transaction = Y.io(formAction, cfg);
@@ -518,7 +561,9 @@ Y.extend(Form, Y.Widget, {
 		}, this));
 
 		this.after('success', Y.bind(function(e) {
-			this.reset();
+			if (this.get('resetAfterSubmit' === true)) {
+				this.reset();
+			}
 		}, this));
 
 		Y.on('io:success', Y.bind(this._handleIOSuccess, this));
@@ -849,13 +894,6 @@ Y.mix(FormField, {
 	INPUT_TEMPLATE : '<input>',
 	
 	/**
-	 * @property FormField.TEXTAREA_TEMPLATE
-	 * @type String
-	 * @description Template used to draw a textarea node
-	 */
-	TEXTAREA_TEMPLATE : '<textarea></textarea>',
-	
-	/**
 	 * @property FormField.LABEL_TEMPLATE
 	 * @type String
 	 * @description Template used to draw a label node
@@ -863,11 +901,11 @@ Y.mix(FormField, {
 	LABEL_TEMPLATE : '<label></label>',
 
 	/**
-	 * @property FormField.SELECT_TEMPLATE
+	 * @property FormField.REQUIRED_ERROR_TEXT
 	 * @type String
-	 * @description Template used to draw a select node
+	 * @description Error text to display for a required field
 	 */
-	SELECT_TEMPLATE : '<select></select>'
+	REQUIRED_ERROR_TEXT : 'This field is required'
 });
 
 Y.extend(FormField, Y.Widget, {
@@ -1114,7 +1152,7 @@ Y.extend(FormField, Y.Widget, {
 		}
 
 		if (!this._checkRequired()) {
-			this.set('error', 'This field is required');
+			this.set('error', FormField.REQUIRED_ERROR_TEXT);
 			return false;
 		} else if (!value) {
 			return true;
@@ -1130,12 +1168,14 @@ Y.extend(FormField, Y.Widget, {
 	 clear : function () {
 		this.set('value', '');
 		this._fieldNode.set('value', '');
+		this.fire('clear');
 	},
 
 	initializer : function () {
 		this.publish('blur');
 		this.publish('change');
 		this.publish('focus');
+		this.publish('clear');
 	},
 
 	destructor : function (config) {
@@ -1613,7 +1653,14 @@ Y.mix(SelectField, {
 	 * @type String
 	 * @description Template used to draw an option node
 	 */
-	 OPTION_TEMPLATE : '<option></option>'
+	OPTION_TEMPLATE : '<option></option>',
+
+	/**
+	 * @property SelectField.DEFAULT_OPTION_TEXT
+	 * @type String
+	 * @description The display title of the default choice in the select box
+	 */
+	DEFAULT_OPTION_TEXT : 'Choose one'
 });
 
 Y.extend(SelectField, Y.ChoiceField, {
@@ -1679,7 +1726,7 @@ Y.extend(SelectField, Y.ChoiceField, {
 			options = contentBox.all('option');
 
 		options.each(function(node, index, nodeList) {
-			var label = (index === 0 ? 'Choose one' : choices[index - 1].label),
+			var label = (index === 0 ? SelectField.DEFAULT_OPTION_TEXT : choices[index - 1].label),
 				val = (index === 0 ? '' : choices[index - 1].value);
 
 			node.setAttrs({
@@ -1786,6 +1833,26 @@ Y.extend(Button, Y.FormField, {
 });
 
 Y.Button = Button;
+/**
+ * @class FileField
+ * @extends FormField
+ * @param config {Object} Configuration object
+ * @constructor
+ * @description A file field node
+ */
+function FileField () {
+    FileField.superclass.constructor.apply(this,arguments);
+}
+ 
+Y.mix(FileField, {
+    NAME : 'file-field'
+});
+ 
+Y.extend(FileField, Y.FormField, {
+    _nodeType : 'file'
+});
+ 
+Y.FileField = FileField;
 
 
 }, '@VERSION@' ,{requires:['node', 'widget', 'io-base']});
