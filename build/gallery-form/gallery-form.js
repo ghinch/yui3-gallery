@@ -472,7 +472,7 @@ Y.extend(Form, Y.Widget, {
 		this._formNode.reset();
 		var fields = this.get('fields');
 		Y.Array.each(fields, function (f, i, a) {
-			f.clear();
+			f.resetFieldNode();
 			f.set('error', null);
 		});
 	},
@@ -485,20 +485,13 @@ Y.extend(Form, Y.Widget, {
 		if (this._runValidation()) {
 			var formAction = this.get('action'),
 				formMethod = this.get('method'),
-				fields = this.get('fields'), 
-				postData = '', 
 				transaction, cfg;
-
-			Y.Array.each(fields, function (f, i, a) {
-				if (f.get('name') !== null) {
-					postData += encodeURIComponent(f.get('name')) + '=' +
-								(encodeURIComponent(f.get('value')) || '') + '&';
-				}
-			});
 
 			cfg = {
 				method : formMethod,
-				data : postData,
+				form : {
+					id : this._formNode
+				},
 				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
 			};
 
@@ -561,7 +554,7 @@ Y.extend(Form, Y.Widget, {
 		}, this));
 
 		this.after('success', Y.bind(function(e) {
-			if (this.get('resetAfterSubmit' === true)) {
+			if (this.get('resetAfterSubmit') === true) {
 				this.reset();
 			}
 		}, this));
@@ -891,7 +884,7 @@ Y.mix(FormField, {
 	 * @type String
 	 * @description Template used to draw an input node
 	 */
-	INPUT_TEMPLATE : '<input>',
+	INPUT_TEMPLATE : '<input />',
 	
 	/**
 	 * @property FormField.LABEL_TEMPLATE
@@ -941,6 +934,14 @@ Y.extend(FormField, Y.Widget, {
 	 */
 	_nodeType : 'text',
 	
+	/**
+	 * @property _initialValue
+	 * @private
+	 * @type String
+	 * @description The initial value set on this field, reset will set the value to this
+	 */
+	_initialValue : null,
+
 	/**
 	 * @method _validateError
 	 * @protected
@@ -1160,13 +1161,20 @@ Y.extend(FormField, Y.Widget, {
 		return validator.call(this, value, this);
 	},
 
+	resetFieldNode : function () {
+		this.set('value', this._initialValue);
+		this._fieldNode.set('value', this._initialValue);
+		this.fire('nodeReset');
+	},
+
 	/**
 	 * @method clear
-	 * @description Clears the value of this field
+	 * @description Clears the value AND the initial value of this field
 	 */
 	 clear : function () {
 		this.set('value', '');
 		this._fieldNode.set('value', '');
+		this._initialValue = null;
 		this.fire('clear');
 	},
 
@@ -1175,6 +1183,7 @@ Y.extend(FormField, Y.Widget, {
 		this.publish('change');
 		this.publish('focus');
 		this.publish('clear');
+		this.publish('nodeReset');
 	},
 
 	destructor : function (config) {
@@ -1229,6 +1238,8 @@ Y.extend(FormField, Y.Widget, {
 		this._syncLabelNode();
 		this._syncFieldNode();
 		this._syncError();
+
+		this._initialValue = this.get('value');
 
 		if (this.get('validateInline') === true) {
 			this._enableInlineValidation();
@@ -1841,14 +1852,28 @@ function FileField () {
 }
  
 Y.mix(FileField, {
-    NAME : 'file-field'
+    NAME : 'file-field',
+
+	FILE_INPUT_TEMPLATE : '<input type="file" />'
 });
  
 Y.extend(FileField, Y.FormField, {
-    _nodeType : 'file'
+    _nodeType : 'file',
+
+	_renderFieldNode : function () {
+		var contentBox = this.get('contentBox'),
+			field = contentBox.query('#' + this.get('id'));
+				
+		if (!field) {
+			field = Y.Node.create(FileField.FILE_INPUT_TEMPLATE);
+			contentBox.appendChild(field);
+		}
+
+		this._fieldNode = field;
+	}
 });
  
 Y.FileField = FileField;
 
 
-}, '@VERSION@' ,{requires:['node', 'widget', 'io-base']});
+}, '@VERSION@' ,{requires:['node', 'widget', 'io-form']});

@@ -470,7 +470,7 @@ Y.extend(Form, Y.Widget, {
 		this._formNode.reset();
 		var fields = this.get('fields');
 		Y.Array.each(fields, function (f, i, a) {
-			f.clear();
+			f.resetFieldNode();
 			f.set('error', null);
 		});
 	},
@@ -483,20 +483,13 @@ Y.extend(Form, Y.Widget, {
 		if (this._runValidation()) {
 			var formAction = this.get('action'),
 				formMethod = this.get('method'),
-				fields = this.get('fields'), 
-				postData = '', 
 				transaction, cfg;
-
-			Y.Array.each(fields, function (f, i, a) {
-				if (f.get('name') !== null) {
-					postData += encodeURIComponent(f.get('name')) + '=' +
-								(encodeURIComponent(f.get('value')) || '') + '&';
-				}
-			});
 
 			cfg = {
 				method : formMethod,
-				data : postData,
+				form : {
+					id : this._formNode
+				},
 				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
 			};
 
@@ -559,7 +552,7 @@ Y.extend(Form, Y.Widget, {
 		}, this));
 
 		this.after('success', Y.bind(function(e) {
-			if (this.get('resetAfterSubmit' === true)) {
+			if (this.get('resetAfterSubmit') === true) {
 				this.reset();
 			}
 		}, this));

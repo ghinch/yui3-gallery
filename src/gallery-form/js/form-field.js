@@ -310,7 +310,7 @@ Y.mix(FormField, {
 	 * @type String
 	 * @description Template used to draw an input node
 	 */
-	INPUT_TEMPLATE : '<input>',
+	INPUT_TEMPLATE : '<input />',
 	
 	/**
 	 * @property FormField.LABEL_TEMPLATE
@@ -360,6 +360,14 @@ Y.extend(FormField, Y.Widget, {
 	 */
 	_nodeType : 'text',
 	
+	/**
+	 * @property _initialValue
+	 * @private
+	 * @type String
+	 * @description The initial value set on this field, reset will set the value to this
+	 */
+	_initialValue : null,
+
 	/**
 	 * @method _validateError
 	 * @protected
@@ -580,13 +588,20 @@ Y.extend(FormField, Y.Widget, {
 		return validator.call(this, value, this);
 	},
 
+	resetFieldNode : function () {
+		this.set('value', this._initialValue);
+		this._fieldNode.set('value', this._initialValue);
+		this.fire('nodeReset');
+	},
+
 	/**
 	 * @method clear
-	 * @description Clears the value of this field
+	 * @description Clears the value AND the initial value of this field
 	 */
 	 clear : function () {
 		this.set('value', '');
 		this._fieldNode.set('value', '');
+		this._initialValue = null;
 		this.fire('clear');
 	},
 
@@ -595,6 +610,7 @@ Y.extend(FormField, Y.Widget, {
 		this.publish('change');
 		this.publish('focus');
 		this.publish('clear');
+		this.publish('nodeReset');
 	},
 
 	destructor : function (config) {
@@ -649,6 +665,8 @@ Y.extend(FormField, Y.Widget, {
 		this._syncLabelNode();
 		this._syncFieldNode();
 		this._syncError();
+
+		this._initialValue = this.get('value');
 
 		if (this.get('validateInline') === true) {
 			this._enableInlineValidation();

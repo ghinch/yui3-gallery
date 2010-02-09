@@ -10,11 +10,25 @@ function FileField () {
 }
  
 Y.mix(FileField, {
-    NAME : 'file-field'
+    NAME : 'file-field',
+
+	FILE_INPUT_TEMPLATE : '<input type="file" />'
 });
  
 Y.extend(FileField, Y.FormField, {
-    _nodeType : 'file'
+    _nodeType : 'file',
+
+	_renderFieldNode : function () {
+		var contentBox = this.get('contentBox'),
+			field = contentBox.query('#' + this.get('id'));
+				
+		if (!field) {
+			field = Y.Node.create(FileField.FILE_INPUT_TEMPLATE);
+			contentBox.appendChild(field);
+		}
+
+		this._fieldNode = field;
+	}
 });
  
 Y.FileField = FileField;
