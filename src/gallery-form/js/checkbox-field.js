@@ -23,27 +23,12 @@ Y.mix(CheckboxField, {
 Y.extend(CheckboxField, Y.FormField, {
     _nodeType : 'checkbox',
 
-	_getValue : function (val, attrname) {
-		if (this.get('checked') === true) {
-			return val;
-		} else {
-			return '';
-		}
-	},
-
 	_syncChecked : function () {
 		this._fieldNode.set('checked', this.get('checked'));
 	},
 
 	initializer : function () {
 		CheckboxField.superclass.initializer.apply(this, arguments);
-
-		this.modifyAttr('value', {
-			getter : function (val, attrName) {
-				return this._getValue(val, attrName);
-			},
-			writeOnce : true
-		});
 	},
 
 	renderUI : function () {
