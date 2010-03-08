@@ -103,30 +103,34 @@ Y.extend(Video, Y.Widget, {
 	},
 	
 	_drawHtml5VideoTag : function () {
-		var contentBox = this.get('contentBox'),
-			src = this.get('src'),
-			mimeType = this.get('mimeType'),
-			tagString = Y.substitute(videoTemplate, {
-				poster : '',
-				autoplay : String(this.get('autoplay')),
-				preload : '',
-				loop : '',
-				controls : '',
-				source : Y.substitute(sourceTemplate, {
-					src : src,
-					typeDef : mimeType + ';',
-					media : ''
-				})
-			}),
-			tag = Y.Node.create(tagString);
+		if (Y.UA.gecko > 1.9 || Y.UA.webkit > 500) {
+			var contentBox = this.get('contentBox'),
+				src = this.get('src'),
+				mimeType = this.get('mimeType'),
+				tagString = Y.substitute(videoTemplate, {
+					poster : '',
+					autoplay : String(this.get('autoplay')),
+					preload : '',
+					loop : '',
+					controls : '',
+					source : Y.substitute(sourceTemplate, {
+						src : src,
+						typeDef : mimeType + ';',
+						media : ''
+					})
+				}),
+				tag = Y.Node.create(tagString);
+				
+			tag.after('error', Y.bind(function (e) {
+				tag.remove();
+				this._renderPlayer();
+			}, this));
+			contentBox.append(tag);
 			
-		tag.after('error', Y.bind(function (e) {
-			tag.remove();
+			this._videoNode = tag;
+		} else {
 			this._renderPlayer();
-		}, this));
-		contentBox.append(tag);
-		
-		this._videoNode = tag;
+		}
 	},
 	
 	_drawFlashPlayer : function () {
