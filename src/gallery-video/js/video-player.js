@@ -1,9 +1,9 @@
-function VideoPlayer () {
-	VideoPlayer.superclass.constructor.apply(this, arguments);
+function Video () {
+	Video.superclass.constructor.apply(this, arguments);
 }
 
-Y.mix(VideoPlayer, {
-	NAME : 'video-player',
+Y.mix(Video, {
+	NAME : 'video',
 	
 	ATTRS : {
 		mimeType : {
@@ -50,7 +50,7 @@ var objTemplate =
 			'type="{typeDef}" ' +
 			'media="{media}">';
 
-Y.extend(VideoPlayer, Y.Widget, {
+Y.extend(Video, Y.Widget, {
 	_videoNode : null,
 	
 	_checkPlugin : function () {
@@ -154,4 +154,4 @@ Y.extend(VideoPlayer, Y.Widget, {
 	}
 });
 
-Y.VideoPlayer = VideoPlayer;
+Y.Video = Video;
