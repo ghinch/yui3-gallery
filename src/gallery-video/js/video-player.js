@@ -17,6 +17,10 @@ Y.mix(Video, {
 		autoplay : {
 			value : true,
 			validator : Y.Lang.isBoolean
+		},
+		methods : {
+			value : ['html', 'quicktime'],
+			validator : this._validateMethods
 		}
 	}
 });
@@ -53,6 +57,26 @@ var objTemplate =
 Y.extend(Video, Y.Widget, {
 	_videoNode : null,
 	
+	_methodIndex : 0,
+	
+	_validateMethods : function (val) {
+		if (Y.Lang.isArray(val) === false) {
+			Y.log("Must be an array of one or more valid methods: html, flash, or quicktime", "error");
+			return false;
+		}
+		
+		var validStrings = /(html|flash|quicktime)/,
+			i, len;
+		
+		for (i = 0, len = val.length; i < len; i++) {
+			if (validStrings.test(val[i]) === false) {
+				return false;
+			}
+		}
+		
+		return true;
+	},
+	
 	_checkPlugin : function () {
 		return true;
 	},
@@ -84,7 +108,7 @@ Y.extend(Video, Y.Widget, {
 			mimeType = this.get('mimeType'),
 			tagString = Y.substitute(videoTemplate, {
 				poster : '',
-				autoplay : '',
+				autoplay : String(this.get('autoplay')),
 				preload : '',
 				loop : '',
 				controls : '',
@@ -98,11 +122,17 @@ Y.extend(Video, Y.Widget, {
 			
 		tag.after('error', Y.bind(function (e) {
 			tag.remove();
-			this._drawVideoObjectTag();
+			this._renderPlayer();
 		}, this));
 		contentBox.append(tag);
 		
 		this._videoNode = tag;
+	},
+	
+	_drawFlashPlayer : function () {
+		// Not implemented
+		this._renderPlayer();
+		return;
 	},
 	
 	_drawVideoObjectTag : function () {
@@ -138,7 +168,19 @@ Y.extend(Video, Y.Widget, {
 	},
 	
 	_renderPlayer : function () {
-		this._drawHtml5VideoTag();
+		var methods = this.get('methods'),
+			renderMethods = {
+				html : this._drawHtml5VideoTag,
+				flash : this._drawFlashPlayer,
+				quicktime : this._drawVideoObjectTag
+			};
+
+		if (methods[this._methodIndex]) {
+			renderMethods[methods[this._methodIndex]].call(this);
+			this._methodIndex++;			
+		} else {
+			Y.log ('No valid player could be found for this video', 'error');
+		}
 	},
 	
 	renderUI : function () {
