@@ -31,10 +31,10 @@ Y.extend(CheckboxField, Y.FormField, {
 		CheckboxField.superclass.initializer.apply(this, arguments);
 	},
 
-	renderUI : function () {
+	/*renderUI : function () {
 		this._renderFieldNode();
 		this._renderLabelNode();
-	},
+	},*/
 
 	syncUI : function () {
 		CheckboxField.superclass.syncUI.apply(this, arguments);

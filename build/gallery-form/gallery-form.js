@@ -394,8 +394,7 @@ Y.extend(Form, Y.Widget, {
 	_syncFormAttributes : function () {
 		this._formNode.setAttrs({
 			action : this.get('action'),
-			method : this.get('method'),
-			id : this.get('id')
+			method : this.get('method')
 		});
 
 		if (this.get('encodingType') === Form.MULTIPART_ENCODED) {
@@ -437,30 +436,17 @@ Y.extend(Form, Y.Widget, {
 	},
 
 	/**
-	 * @method _handleIOSuccess
+	 * @method _handleIOEvent
 	 * @protected
 	 * @param {Number} ioId
 	 * @param {Object} ioResponse
-	 * @description Handles the success event of IO transactions instantiated by this instance
+	 * @param {String} eventName
+	 * @description Handles the IO events of transactions instantiated by this instance
 	 */
-	_handleIOSuccess : function (ioId, ioResponse) {
-		if (typeof this._ioIds[ioId] != 'undefined') {
-			delete this._ioIds[ioId];
-			this.fire('success', {response : ioResponse});
-		}
-	},
-
-	/**
-	 * @method _handleIOFailure
-	 * @protected
-	 * @param {Number} ioId
-	 * @param {Object} ioResponse
-	 * @description Handles the failure event of the IO transactions instantiated by this instance
-	 */
-	_handleIOFailure : function (ioId, ioResponse) {
-		if (typeof this._ioIds[ioId] != 'undefined') {
-			this.fire('failure', {response : ioResponse});
-			delete this._ioIds[ioId];
+	_handleIOEvent : function (eventName, ioId, ioResponse) {
+			console.log(arguments);
+		if (typeof this._ioIds[ioId] !== undefined) {
+			this.fire(eventName, {args : ioResponse});
 		}
 	},
 	
@@ -494,9 +480,8 @@ Y.extend(Form, Y.Widget, {
 				},
 				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
 			};
-
+			
 			transaction = Y.io(formAction, cfg);
-
 			this._ioIds[transaction.id] = transaction;
 		}
 	},
@@ -559,8 +544,11 @@ Y.extend(Form, Y.Widget, {
 			}
 		}, this));
 
-		Y.on('io:success', Y.bind(this._handleIOSuccess, this));
-		Y.on('io:failure', Y.bind(this._handleIOFailure, this));
+		Y.on('io:start', Y.bind(this._handleIOEvent, this, 'start'));
+		Y.on('io:complete', Y.bind(this._handleIOEvent, this, 'complete'));
+		Y.on('io:xdr', Y.bind(this._handleIOEvent, this, 'xdr'));
+		Y.on('io:success', Y.bind(this._handleIOEvent, this, 'success'));
+		Y.on('io:failure', Y.bind(this._handleIOEvent, this, 'failure'));
 	},
 	
 	syncUI : function () {
@@ -1321,10 +1309,10 @@ Y.extend(CheckboxField, Y.FormField, {
 		CheckboxField.superclass.initializer.apply(this, arguments);
 	},
 
-	renderUI : function () {
+	/*renderUI : function () {
 		this._renderFieldNode();
 		this._renderLabelNode();
-	},
+	},*/
 
 	syncUI : function () {
 		CheckboxField.superclass.syncUI.apply(this, arguments);
@@ -1802,6 +1790,8 @@ Y.extend(Button, Y.FormField, {
             innerHTML : this.get('label'),
             id : this.get('id')
         });
+        
+        this.get('contentBox').addClass('first-child');
 	},
 
 	_setClickHandler : function () {
@@ -1861,4 +1851,4 @@ Y.extend(FileField, Y.FormField, {
 Y.FileField = FileField;
 
 
-}, '@VERSION@' ,{requires:['node', 'widget', 'io-form']});
+}, '@VERSION@' ,{requires:['node', 'widget-base', 'widget-htmlparser', 'io-form']});
