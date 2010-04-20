@@ -1,203 +1,145 @@
-function Video () {
-	Video.superclass.constructor.apply(this, arguments);
-}
+(function () {
 
-Y.mix(Video, {
-	NAME : 'video',
-	
-	ATTRS : {
-		mimeType : {
-			value : '',
-			validator : Y.Lang.isString
-		},
-		src : {
-			value : '',
-			validator : Y.Lang.isString
-		},
-		autoplay : {
-			value : true,
-			validator : Y.Lang.isBoolean
-		},
-		methods : {
-			value : ['html', 'quicktime'],
-			validator : this._validateMethods
-		}
-	}
-});
-
-var objTemplate =
-	'<object width="100%" height="100%" ' +
-		'data="{src}" ' +
-		//'id="{id}" ' +
-		//'name="{name}" ' +
-		'codebase="{codebase}" ' +
-		'classid="{classid}" ' +
-		'type="{mimeType}" ' +
-		'style="{style}">' +
-		'{params}' +
-	'</object>',
-	paramTemplate =
-		'<param name="{name}" value="{value}">',
-	videoTemplate =
-		'<video width="100%" height="100%" ' +
-			//'src="{src}" ' +
-			'poster="{poster}" ' +
-			'preload="{preload}" ' +
-			'autoplay="{autoplay}" ' +
-			'loop="{loop}" ' +
-			'controls="{controls}">' +
-			'{source}' +
-		'</video>',
-	sourceTemplate =
-		'<source ' +
-			'src="{src}" ' +
-			'type="{typeDef}" ' +
-			'media="{media}">';
-
-Y.extend(Video, Y.Widget, {
-	_videoNode : null,
-	
-	_methodIndex : 0,
-	
-	_validateMethods : function (val) {
-		if (Y.Lang.isArray(val) === false) {
-			Y.log("Must be an array of one or more valid methods: html, flash, or quicktime", "error");
+	function Video (config) {
+		Video.superclass.constructor.call(this);
+		if (!config || !config.media) {
 			return false;
 		}
 		
-		var validStrings = /(html|flash|quicktime)/,
-			i, len;
+		var i =0 , len = config.media.length;
 		
-		for (i = 0, len = val.length; i < len; i++) {
-			if (validStrings.test(val[i]) === false) {
+		for (; i < len; i++) {
+			config.media[i].index = this._checkEnvironment(config.media[i].mimeType);
+		}
+		
+		config.media.sort(function (a, b) {
+			return a.index > b.index;
+		});
+
+		this._buildPlayer(config.media[0].index, config);
+	}
+	
+	var RENDER_ORDER = ['html5', 'flash', 'quicktime'],
+		
+		CONTENT_TYPES = {
+			MOV : 1,
+			FLV : 2,
+			MP4 : 3,
+			M4V : 4,
+			MPEG : 5,
+			OGG : 6
+		},
+		
+		MIME_TYPES = {
+			'video/quicktime' : CONTENT_TYPES.MOV,
+			'video/mp4' : CONTENT_TYPES.MP4,
+			'video/mpeg' : CONTENT_TYPES.MPEG,
+			'video/x-m4v' : CONTENT_TYPES.M4V,
+			'video/x-flv' : CONTENT_TYPES.FLV,
+			'video/ogg' : CONTENT_TYPES.OGG
+		},
+		
+		HTML5_BROWSERS = {
+			GECKO : [
+				CONTENT_TYPES.OGG
+			],
+			OPERA : [
+				CONTENT_TYPES.OGG
+			],
+			WEBKIT : [
+				CONTENT_TYPES.MP4, 
+				CONTENT_TYPES.MOV, 
+				CONTENT_TYPES.MPEG, 
+				CONTENT_TYPES.M4V
+			]
+		},
+		
+		FLASH_TYPES = [
+			CONTENT_TYPES.MP4, 
+			CONTENT_TYPES.MOV, 
+			CONTENT_TYPES.M4V, 
+			CONTENT_TYPES.FLV
+		],		
+		
+		PLAYERS = {
+			html5 : Y.VideoHTML5,
+			flash : Y.VideoFlash,
+			quicktime : Y.VideoQuicktime
+		};
+		
+	Y.mix(Video, {
+		SWF_PLAYER_SRC : 'assets/player.swf'
+	});
+	
+	Y.extend(Video, Y.Base, {
+		_widget : null,
+		
+		initializer : function () {
+			Y.publish('canPlay');
+			Y.publish('ended');
+			Y.publish('loadedMetadata');
+			Y.publish('progress');
+			Y.publish('playheadUpdate');
+			Y.publish('error');
+		},
+		
+		_checkEnvironment : function (mimeType) {
+			var type = MIME_TYPES[mimeType];
+			if (Y.UA.gecko > 0) {
+				if (Y.UA.gecko >= 1.91 && Y.Array.indexOf(HTML5_BROWSERS.GECKO, type) > -1) {
+					return Y.Array.indexOf(RENDER_ORDER, 'html5');
+				} else if (Y.UA.flashMajor > 9 && Y) {
+					return Y.Array.indexOf(RENDER_ORDER, 'flash');
+				} else {
+					return Y.Array.indexOf(RENDER_ORDER, 'quicktime');
+				}
+			} else if (Y.UA.opera > 0) {
+				if (Y.UA.opera >= 10.5 && Y.Array.indexOf(HTML5_BROWSERS.OPERA, type) > -1) {
+					return Y.Array.indexOf(RENDER_ORDER, 'html5');
+				} else {
+					return Y.Array.indexOf(RENDER_ORDER, 'quicktime');
+				}
+			} else if (Y.UA.webkit > 0) {
+				if (Y.UA.webkit >= 525.25 && Y.Array.indexOf(HTML5_BROWSERS.WEBKIT, type) > -1) {
+					return Y.Array.indexOf(RENDER_ORDER, 'html5');
+				} else {
+					return Y.Array.indexOf(RENDER_ORDER, 'quicktime');
+				}
+			} else if (Y.UA.ie > 0) {
+			} else {
+				return -1;
+			}
+		},
+				
+		_buildPlayer : function (renderIndex, config) {
+			if (!RENDER_ORDER[renderIndex]) {
 				return false;
 			}
-		}
-		
-		return true;
-	},
-	
-	_checkPlugin : function () {
-		return true;
-	},
-	
-	initializer : function () {
-		
-	},
-	
-	destructor : function () {
-	
-	},
-	
-	_createParams : function (params) {
-		var paramString = '';
-		
-		Y.each(params, function (val, key, obj) {
-			paramString += Y.substitute(paramTemplate, {
-				name : key,
-				value : String(val)
-			});
-		});
-		
-		return paramString;
-	},
-	
-	_drawHtml5VideoTag : function () {
-		if (Y.UA.gecko > 1.9 || Y.UA.webkit > 500) {
-			var contentBox = this.get('contentBox'),
-				src = this.get('src'),
-				mimeType = this.get('mimeType'),
-				tagString = Y.substitute(videoTemplate, {
-					poster : '',
-					autoplay : String(this.get('autoplay')),
-					preload : '',
-					loop : '',
-					controls : '',
-					source : Y.substitute(sourceTemplate, {
-						src : src,
-						typeDef : mimeType + ';',
-						media : ''
-					})
-				}),
-				tag = Y.Node.create(tagString);
-				
-			tag.after('error', Y.bind(function (e) {
-				tag.remove();
-				this._renderPlayer();
-			}, this));
-			contentBox.append(tag);
-			
-			this._videoNode = tag;
-		} else {
-			this._renderPlayer();
-		}
-	},
-	
-	_drawFlashPlayer : function () {
-		// Not implemented
-		this._renderPlayer();
-		return;
-	},
-	
-	_drawVideoObjectTag : function () {
-		var contentBox = this.get('contentBox'),
-			height = this.get('height'),
-			src = this.get('src'),
-			mimeType = this.get('mimeType'),
-			qtParams = {
-				src : this.get('src'),
-				showlogo : false,
-				autoplay : this.get('autoplay'),
-				enablejavascript : true,
-				postdomevents : true,
-				kioskmode : false,
-				scale : 'aspect',
-				cache : true,
-				controller : true
-				
-			},
-			tagString = Y.substitute(objTemplate, {
-				src : src,
-				codebase : '',
-				classid : '',
-				mimeType : mimeType,
-				style : '',
-				params : this._createParams(qtParams)
-			}),
-			tag = Y.Node.create(tagString);
-		this.set('height', height + 16);
-		contentBox.append(tag);
-		
-		this._videoNode = tag;
-	},
-	
-	_renderPlayer : function () {
-		var methods = this.get('methods'),
-			renderMethods = {
-				html : this._drawHtml5VideoTag,
-				flash : this._drawFlashPlayer,
-				quicktime : this._drawVideoObjectTag
-			};
 
-		if (methods[this._methodIndex]) {
-			renderMethods[methods[this._methodIndex]].call(this);
-			this._methodIndex++;			
-		} else {
-			Y.log ('No valid player could be found for this video', 'error');
+			this._widget = new PLAYERS[RENDER_ORDER[renderIndex]](config);
+		},
+		
+		getPlayer : function () {
+			return this._widget;
+		},
+		
+		render : function () {
+			this._widget.render.apply(this._widget, arguments);
+		},
+		
+		play : function () {
+			this._widget.play();
+		},
+		
+		pause : function () {
+			this._widget.pause();
+		},
+		
+		stop : function () {
+			this._widget.stop();
 		}
-	},
+	});
 	
-	renderUI : function () {
-		this._renderPlayer();
-	},
-	
-	bindUI : function () {
-	
-	},
-	
-	syncUI : function () {
-	
-	}
-});
+	Y.Video = Video;
 
-Y.Video = Video;
+})();
