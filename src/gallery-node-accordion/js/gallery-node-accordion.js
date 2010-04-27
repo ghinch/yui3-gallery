@@ -127,9 +127,11 @@ var UA = Y.UA,
 	
 	FC = '>.',
 	ITEM_QUERY 			= FC + CLASS_ACCORDION_ITEM,
-	ITEM_TRIGGER_QUERY 	= FC + CLASS_ACCORDION_ITEM + PERIOD + CLASS_ACCORDION_ITEM_TRIGGER + ',' +
-							FC + CLASS_ACCORDION_ITEM + FC + CLASS_ACCORDION_ITEM_HD + FC + CLASS_ACCORDION_ITEM_TRIGGER + ',' +
-							FC + CLASS_ACCORDION_ITEM + FC + CLASS_ACCORDION_ITEM_FT + FC + CLASS_ACCORDION_ITEM_TRIGGER,
+	ITEM_TRIGGER_QUERY 	= ITEM_QUERY + PERIOD + CLASS_ACCORDION_ITEM_TRIGGER + ', ' +
+							ITEM_QUERY + FC + CLASS_ACCORDION_ITEM_HD + PERIOD + CLASS_ACCORDION_ITEM_TRIGGER + ', ' +
+							ITEM_QUERY + FC + CLASS_ACCORDION_ITEM_HD + FC + CLASS_ACCORDION_ITEM_TRIGGER + ', ' +
+							ITEM_QUERY + FC + CLASS_ACCORDION_ITEM_FT + PERIOD + CLASS_ACCORDION_ITEM_TRIGGER + ', ' +
+							ITEM_QUERY + FC + CLASS_ACCORDION_ITEM_FT + FC + CLASS_ACCORDION_ITEM_TRIGGER,
 	// few more just in case...
 	//ITEM_HD_QUERY = FC+CLASS_ACCORDION_ITEM+FC+CLASS_ACCORDION_ITEM_HD,
 	//ITEM_BD_QUERY = FC+CLASS_ACCORDION_ITEM+FC+CLASS_ACCORDION_ITEM_BD,
@@ -140,7 +142,7 @@ var UA = Y.UA,
 	* The NodeAccordion class is a plugin for a Node instance.  The class is used via  
 	* the <a href="Node.html#method_plug"><code>plug</code></a> method of Node and 
 	* should not be instantiated directly.
-	* @namespace plugin
+	* @namespace Y.Plugin
 	* @class NodeAccordion
 	*/
 	NodeAccordion = function () {
@@ -157,6 +159,7 @@ NodeAccordion.ATTRS = {
 	* Nodes representing the list of active items.
 	*
 	* @attribute activeItems
+	* @readOnly
 	* @type Y.NodeList
 	*/
 	activeItems: {
@@ -169,6 +172,7 @@ NodeAccordion.ATTRS = {
 	* Nodes representing the list of items.
 	*
 	* @attribute items
+	* @readOnly
 	* @type Y.NodeList
 	*/
 	items: {
@@ -259,7 +263,6 @@ NodeAccordion.ATTRS = {
 	* </ol>
 	* 
 	* @attribute speed
-	* @readOnly
 	* @default 0.4
 	* @type numeric
 	*/	

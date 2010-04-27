@@ -14,6 +14,9 @@ YUI.add('gallery-datasource-wrapper', function(Y) {
  */
 function DSW () {
 	DSW.superclass.constructor.apply(this, arguments);
+
+    this._createSchema(this.get('source'));
+    this._attachListeners();
 }
 
 Y.mix(DSW, {
@@ -47,6 +50,45 @@ Y.extend(DSW, Y.Base, {
 		return false;
 	},
 	
+    /** 
+     * @method _createSchema
+     * @param source {Y.DataSource.Local}
+     * @private
+     * @description Copies the supplied YUI 3 DataSource's schema to
+     *              a YUI2 compatible one
+     */
+    _createSchema : function (source) {
+        var schema = source.schema;
+        if (!schema) {
+            return;
+        }   
+        schema = schema.get('schema');
+        this.responseSchema = { 
+            fields : (schema.resultFields || []),
+            metaFields : (schema.metaFields || {}),
+            resultsList : (schema.resultListLocator || '') 
+        };    
+    },  
+        
+    /** 
+     * @method _attachListeners
+     * @private
+     * @description Attaches event listeners
+     */
+    _attachListeners : function () {
+        this.after('sourceChange', Y.bind(function (e) {
+            var source = e.newVal;
+            this._createSchema(source);
+        }, this));
+    },  
+        
+    /** 
+     * @property responseSchema
+     * @type {Object}
+     * @description YUI 2 compatible version of the response schema
+     */
+    responseSchema : null,
+
 	/**
 	 * @method sendRequest
 	 * @param req {String} A request to send the DataSource
