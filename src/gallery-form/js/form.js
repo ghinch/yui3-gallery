@@ -82,6 +82,7 @@ Y.mix(Form, {
 		 * @type Boolean
 		 * @description Set to true to validate fields "on the fly", where they will
 		 *				validate themselves any time the value attribute is changed
+		 * @default false
 		 */
 		inlineValidation : {
 			value : false,
@@ -92,6 +93,7 @@ Y.mix(Form, {
 		 * @attribute resetAfterSubmit
 		 * @type Boolean
 		 * @description If true, the form is reset following a successful submit event 
+		 * @default true
 		 */
 		resetAfterSubmit : {
 			value : true,
@@ -102,10 +104,27 @@ Y.mix(Form, {
 		 * @attribute encodingType
 		 * @type Number
 		 * @description Set to Form.MULTIPART_ENCODED in order to use the FileField for uploads
+		 * @default Y.Form.URL_ENCODED
 		 */
 		encodingType : {
 			value : Form.URL_ENCODED,
 			validator : Y.Lang.isNumber
+		},
+		
+		/**
+		 * @attribute skipValidationBeforeSubmit
+		 * @type Boolean
+		 * @description Set to true to skip the validation step when submitting
+		 * @default false
+		 */
+		skipValidationBeforeSubmit : {
+			value : false,
+			validator : Y.Lang.isBoolean
+		},
+		
+		submitViaIO : {
+			value : true,
+			validator : Y.Lang.isBoolean
 		}
 	},
 
@@ -436,14 +455,14 @@ Y.extend(Form, Y.Widget, {
 	/**
 	 * @method _handleIOEvent
 	 * @protected
+	 * @param {String} eventName
 	 * @param {Number} ioId
 	 * @param {Object} ioResponse
-	 * @param {String} eventName
 	 * @description Handles the IO events of transactions instantiated by this instance
 	 */
 	_handleIOEvent : function (eventName, ioId, ioResponse) {
-		if (typeof this._ioIds[ioId] !== undefined) {
-			this.fire(eventName, {args : ioResponse});
+		if (this._ioIds[ioId] !== undefined) {
+			this.fire(eventName, {response : ioResponse});
 		}
 	},
 	
@@ -465,27 +484,32 @@ Y.extend(Form, Y.Widget, {
 	 * @description Submits the form using the defined method to the URL defined in the action
 	 */
 	submit : function () {
-		if (this._runValidation()) {
+		if (this.get('skipValidationBeforeSubmit') === true || this._runValidation()) {
 			var formAction = this.get('action'),
 				formMethod = this.get('method'),
+				submitViaIO = this.get('submitViaIO'),
 				transaction, cfg;
 
-			cfg = {
-				method : formMethod,
-				form : {
-					id : this._formNode
-				},
-				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
-			};
-			
-			transaction = Y.io(formAction, cfg);
-			this._ioIds[transaction.id] = transaction;
+			if (submitViaIO === true) {
+				cfg = {
+					method : formMethod,
+					form : {
+						id : this._formNode,
+						upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
+					}
+				};
+	
+				transaction = Y.io(formAction, cfg);
+				this._ioIds[transaction.id] = transaction;
+			} else {
+				this._formNode.submit();
+			}
 		}
 	},
 	
 	/**
 	 * @method getField
-	 * @param {String | Number} selector
+	 * @param {String|Number} selector
 	 * @description Get a form field by its name attribute or numerical index
 	 */
 	getField : function (selector) {
@@ -509,8 +533,11 @@ Y.extend(Form, Y.Widget, {
 
 		this.publish('submit');
 		this.publish('reset');
+		this.publish('start');
 		this.publish('success');
 		this.publish('failure');
+		this.publish('complete');
+		this.publish('xdr');
 	},
 	
 	destructor : function () {

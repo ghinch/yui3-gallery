@@ -123,6 +123,17 @@ Y.mix(FormField, {
 		validateInline : {
 			value : false,
 			validator : Y.Lang.isBoolean
+		},
+		
+		/**
+		 * @attribute disabled
+		 * @type Boolean
+		 * @default false
+		 * @description Set to true to disable the field.
+		 */
+		disabled : {
+		    value : false,
+		    validator : Y.Lang.isBoolean
 		}
 	},
 
@@ -324,7 +335,13 @@ Y.mix(FormField, {
 	 * @type String
 	 * @description Error text to display for a required field
 	 */
-	REQUIRED_ERROR_TEXT : 'This field is required'
+	REQUIRED_ERROR_TEXT : 'This field is required',
+	
+	/**
+	 * @property FormField.FIELD_ID_SUFFIX
+	 * @type String
+	 */
+	FIELD_ID_SUFFIX : '-field'
 });
 
 Y.extend(FormField, Y.Widget, {
@@ -480,7 +497,7 @@ Y.extend(FormField, Y.Widget, {
 			this._labelNode.setAttrs({
 				innerHTML : this.get('label')
 			});
-			this._labelNode.setAttribute('for', this.get('id'));
+			this._labelNode.setAttribute('for', this.get('id') + FormField.FIELD_ID_SUFFIX);
 		}
 	},
 
@@ -493,7 +510,7 @@ Y.extend(FormField, Y.Widget, {
 		this._fieldNode.setAttrs({
 			name : this.get('name'), 
 			type : this._nodeType,
-			id : this.get('id'),
+			id : this.get('id') + FormField.FIELD_ID_SUFFIX,
 			value : this.get('value')
 		});
 		
@@ -511,6 +528,15 @@ Y.extend(FormField, Y.Widget, {
 		if (err) {
 			this._showError(err);
 		}
+	},
+	
+	_syncDisabled : function (e) {
+	    var dis = this.get('disabled');
+	    if (dis === true) {
+	        this._fieldNode.setAttribute('disabled', 'disabled');
+	    } else {
+	        this._fieldNode.removeAttribute('disabled');
+	    }
 	},
 	
 	/**
@@ -611,6 +637,8 @@ Y.extend(FormField, Y.Widget, {
 		this.publish('focus');
 		this.publish('clear');
 		this.publish('nodeReset');
+		
+		this._initialValue = this.get('value');
 	},
 
 	destructor : function (config) {
@@ -658,6 +686,10 @@ Y.extend(FormField, Y.Widget, {
 				this._disableInlineValidation();
 			}
 		}, this));
+		
+		this.on('disabledChange', Y.bind(function (e) {
+		    this._syncDisabled();
+		}, this));
 	},
 
 	syncUI : function () {
@@ -665,8 +697,7 @@ Y.extend(FormField, Y.Widget, {
 		this._syncLabelNode();
 		this._syncFieldNode();
 		this._syncError();
-
-		this._initialValue = this.get('value');
+		this._syncDisabled();
 
 		if (this.get('validateInline') === true) {
 			this._enableInlineValidation();

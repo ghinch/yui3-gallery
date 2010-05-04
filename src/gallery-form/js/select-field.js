@@ -31,7 +31,21 @@ Y.mix(SelectField, {
 	 * @type String
 	 * @description The display title of the default choice in the select box
 	 */
-	DEFAULT_OPTION_TEXT : 'Choose one'
+	DEFAULT_OPTION_TEXT : 'Choose one',
+	
+	ATTRS : {
+	    /**
+	     * @attribute useDefaultOption
+	     * @type Boolean
+	     * @default true
+	     * @description If true, the first option will use the DEFAULT_OPTION_TEXT
+	     *              to create a blank option
+	     */
+	    useDefaultOption : {
+	        validator : Y.Lang.isBoolean,
+	        value : true
+	    }
+	}
 });
 
 Y.extend(SelectField, Y.ChoiceField, {
@@ -64,8 +78,10 @@ Y.extend(SelectField, Y.ChoiceField, {
             elOption;
        
 		// Create the "Choose one" option
-		elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
-		this._fieldNode.appendChild(elOption);
+		if (this.get('useDefaultOption') === true) {
+    		elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
+    		this._fieldNode.appendChild(elOption);
+		}
 
 		Y.Array.each(choices, function (c, i, a) {
 			elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
@@ -94,15 +110,26 @@ Y.extend(SelectField, Y.ChoiceField, {
 	_syncOptionNodes : function () {
         var choices = this.get('choices'),
 			contentBox = this.get('contentBox'),
-			options = contentBox.all('option');
+			options = contentBox.all('option'),
+			useDefaultOption = this.get('useDefaultOption'),
+			currentVal = this.get('value');
+
+        if (useDefaultOption === true) {
+            choices.unshift({
+                label : SelectField.DEFAULT_OPTION_TEXT,
+                value : ''
+            });
+        }
 
 		options.each(function(node, index, nodeList) {
-			var label = (index === 0 ? SelectField.DEFAULT_OPTION_TEXT : choices[index - 1].label),
-				val = (index === 0 ? '' : choices[index - 1].value);
+			var label = choices[index].label,
+				val = choices[index].value;
 
 			node.setAttrs({
 				innerHTML : label,
-				value : val
+				value : val,
+				selected : (val == currentVal),
+				defaultSelected : (val == currentVal)
 			});
 		}, this);
 	},

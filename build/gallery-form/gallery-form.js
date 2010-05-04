@@ -84,6 +84,7 @@ Y.mix(Form, {
 		 * @type Boolean
 		 * @description Set to true to validate fields "on the fly", where they will
 		 *				validate themselves any time the value attribute is changed
+		 * @default false
 		 */
 		inlineValidation : {
 			value : false,
@@ -94,6 +95,7 @@ Y.mix(Form, {
 		 * @attribute resetAfterSubmit
 		 * @type Boolean
 		 * @description If true, the form is reset following a successful submit event 
+		 * @default true
 		 */
 		resetAfterSubmit : {
 			value : true,
@@ -104,10 +106,27 @@ Y.mix(Form, {
 		 * @attribute encodingType
 		 * @type Number
 		 * @description Set to Form.MULTIPART_ENCODED in order to use the FileField for uploads
+		 * @default Y.Form.URL_ENCODED
 		 */
 		encodingType : {
 			value : Form.URL_ENCODED,
 			validator : Y.Lang.isNumber
+		},
+		
+		/**
+		 * @attribute skipValidationBeforeSubmit
+		 * @type Boolean
+		 * @description Set to true to skip the validation step when submitting
+		 * @default false
+		 */
+		skipValidationBeforeSubmit : {
+			value : false,
+			validator : Y.Lang.isBoolean
+		},
+		
+		submitViaIO : {
+			value : true,
+			validator : Y.Lang.isBoolean
 		}
 	},
 
@@ -438,15 +457,14 @@ Y.extend(Form, Y.Widget, {
 	/**
 	 * @method _handleIOEvent
 	 * @protected
+	 * @param {String} eventName
 	 * @param {Number} ioId
 	 * @param {Object} ioResponse
-	 * @param {String} eventName
 	 * @description Handles the IO events of transactions instantiated by this instance
 	 */
 	_handleIOEvent : function (eventName, ioId, ioResponse) {
-			console.log(arguments);
-		if (typeof this._ioIds[ioId] !== undefined) {
-			this.fire(eventName, {args : ioResponse});
+		if (this._ioIds[ioId] !== undefined) {
+			this.fire(eventName, {response : ioResponse});
 		}
 	},
 	
@@ -468,27 +486,32 @@ Y.extend(Form, Y.Widget, {
 	 * @description Submits the form using the defined method to the URL defined in the action
 	 */
 	submit : function () {
-		if (this._runValidation()) {
+		if (this.get('skipValidationBeforeSubmit') === true || this._runValidation()) {
 			var formAction = this.get('action'),
 				formMethod = this.get('method'),
+				submitViaIO = this.get('submitViaIO'),
 				transaction, cfg;
 
-			cfg = {
-				method : formMethod,
-				form : {
-					id : this._formNode
-				},
-				upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
-			};
-			
-			transaction = Y.io(formAction, cfg);
-			this._ioIds[transaction.id] = transaction;
+			if (submitViaIO === true) {
+				cfg = {
+					method : formMethod,
+					form : {
+						id : this._formNode,
+						upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
+					}
+				};
+	
+				transaction = Y.io(formAction, cfg);
+				this._ioIds[transaction.id] = transaction;
+			} else {
+				this._formNode.submit();
+			}
 		}
 	},
 	
 	/**
 	 * @method getField
-	 * @param {String | Number} selector
+	 * @param {String|Number} selector
 	 * @description Get a form field by its name attribute or numerical index
 	 */
 	getField : function (selector) {
@@ -512,8 +535,11 @@ Y.extend(Form, Y.Widget, {
 
 		this.publish('submit');
 		this.publish('reset');
+		this.publish('start');
 		this.publish('success');
 		this.publish('failure');
+		this.publish('complete');
+		this.publish('xdr');
 	},
 	
 	destructor : function () {
@@ -685,6 +711,17 @@ Y.mix(FormField, {
 		validateInline : {
 			value : false,
 			validator : Y.Lang.isBoolean
+		},
+		
+		/**
+		 * @attribute disabled
+		 * @type Boolean
+		 * @default false
+		 * @description Set to true to disable the field.
+		 */
+		disabled : {
+		    value : false,
+		    validator : Y.Lang.isBoolean
 		}
 	},
 
@@ -886,7 +923,13 @@ Y.mix(FormField, {
 	 * @type String
 	 * @description Error text to display for a required field
 	 */
-	REQUIRED_ERROR_TEXT : 'This field is required'
+	REQUIRED_ERROR_TEXT : 'This field is required',
+	
+	/**
+	 * @property FormField.FIELD_ID_SUFFIX
+	 * @type String
+	 */
+	FIELD_ID_SUFFIX : '-field'
 });
 
 Y.extend(FormField, Y.Widget, {
@@ -1041,7 +1084,7 @@ Y.extend(FormField, Y.Widget, {
 			this._labelNode.setAttrs({
 				innerHTML : this.get('label')
 			});
-			this._labelNode.setAttribute('for', this.get('id'));
+			this._labelNode.setAttribute('for', this.get('id') + FormField.FIELD_ID_SUFFIX);
 		}
 	},
 
@@ -1054,7 +1097,7 @@ Y.extend(FormField, Y.Widget, {
 		this._fieldNode.setAttrs({
 			name : this.get('name'), 
 			type : this._nodeType,
-			id : this.get('id'),
+			id : this.get('id') + FormField.FIELD_ID_SUFFIX,
 			value : this.get('value')
 		});
 		
@@ -1072,6 +1115,15 @@ Y.extend(FormField, Y.Widget, {
 		if (err) {
 			this._showError(err);
 		}
+	},
+	
+	_syncDisabled : function (e) {
+	    var dis = this.get('disabled');
+	    if (dis === true) {
+	        this._fieldNode.setAttribute('disabled', 'disabled');
+	    } else {
+	        this._fieldNode.removeAttribute('disabled');
+	    }
 	},
 	
 	/**
@@ -1172,6 +1224,8 @@ Y.extend(FormField, Y.Widget, {
 		this.publish('focus');
 		this.publish('clear');
 		this.publish('nodeReset');
+		
+		this._initialValue = this.get('value');
 	},
 
 	destructor : function (config) {
@@ -1219,6 +1273,10 @@ Y.extend(FormField, Y.Widget, {
 				this._disableInlineValidation();
 			}
 		}, this));
+		
+		this.on('disabledChange', Y.bind(function (e) {
+		    this._syncDisabled();
+		}, this));
 	},
 
 	syncUI : function () {
@@ -1226,8 +1284,7 @@ Y.extend(FormField, Y.Widget, {
 		this._syncLabelNode();
 		this._syncFieldNode();
 		this._syncError();
-
-		this._initialValue = this.get('value');
+		this._syncDisabled();
 
 		if (this.get('validateInline') === true) {
 			this._enableInlineValidation();
@@ -1640,7 +1697,21 @@ Y.mix(SelectField, {
 	 * @type String
 	 * @description The display title of the default choice in the select box
 	 */
-	DEFAULT_OPTION_TEXT : 'Choose one'
+	DEFAULT_OPTION_TEXT : 'Choose one',
+	
+	ATTRS : {
+	    /**
+	     * @attribute useDefaultOption
+	     * @type Boolean
+	     * @default true
+	     * @description If true, the first option will use the DEFAULT_OPTION_TEXT
+	     *              to create a blank option
+	     */
+	    useDefaultOption : {
+	        validator : Y.Lang.isBoolean,
+	        value : true
+	    }
+	}
 });
 
 Y.extend(SelectField, Y.ChoiceField, {
@@ -1673,8 +1744,10 @@ Y.extend(SelectField, Y.ChoiceField, {
             elOption;
        
 		// Create the "Choose one" option
-		elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
-		this._fieldNode.appendChild(elOption);
+		if (this.get('useDefaultOption') === true) {
+    		elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
+    		this._fieldNode.appendChild(elOption);
+		}
 
 		Y.Array.each(choices, function (c, i, a) {
 			elOption = Y.Node.create(SelectField.OPTION_TEMPLATE);
@@ -1703,15 +1776,26 @@ Y.extend(SelectField, Y.ChoiceField, {
 	_syncOptionNodes : function () {
         var choices = this.get('choices'),
 			contentBox = this.get('contentBox'),
-			options = contentBox.all('option');
+			options = contentBox.all('option'),
+			useDefaultOption = this.get('useDefaultOption'),
+			currentVal = this.get('value');
+
+        if (useDefaultOption === true) {
+            choices.unshift({
+                label : SelectField.DEFAULT_OPTION_TEXT,
+                value : ''
+            });
+        }
 
 		options.each(function(node, index, nodeList) {
-			var label = (index === 0 ? SelectField.DEFAULT_OPTION_TEXT : choices[index - 1].label),
-				val = (index === 0 ? '' : choices[index - 1].value);
+			var label = choices[index].label,
+				val = choices[index].value;
 
 			node.setAttrs({
 				innerHTML : label,
-				value : val
+				value : val,
+				selected : (val == currentVal),
+				defaultSelected : (val == currentVal)
 			});
 		}, this);
 	},
