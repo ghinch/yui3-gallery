@@ -127,10 +127,15 @@ Y.extend(SelectField, Y.ChoiceField, {
 
 			node.setAttrs({
 				innerHTML : label,
-				value : val,
-				selected : (val == currentVal),
-				defaultSelected : (val == currentVal)
+				value : val
 			});
+
+			if (currentVal == val) {
+				node.setAttrs({
+					selected : true,
+					defaultSelected : true
+				});
+			}
 		}, this);
 	},
     
