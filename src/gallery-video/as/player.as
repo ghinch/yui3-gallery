@@ -22,7 +22,7 @@ private function fireEvent(event:String):void {
 private function attachListeners():void {
 	videoPlayer.doubleClickEnabled = true;
 	videoPlayer.addEventListener("playheadUpdate", function ():void {
-		fireEvent("currentTimeChange");
+		fireEvent("playheadUpdate");
 	});
 	
 	videoPlayer.addEventListener("close", function ():void {
@@ -42,21 +42,21 @@ private function attachListeners():void {
 	});
 	
 	videoPlayer.addEventListener("metadataReceived", function ():void {
-		fireEvent("loadedMetadata");
+		fireEvent("metadataReceived");
 	});
 	
 	videoPlayer.addEventListener("ready", function ():void {
-		fireEvent("canPlay");
+		fireEvent("ready");
 	});
 	
-	videoPlayer.addEventListener("doubleClick", function ():void {
+	/*videoPlayer.addEventListener("doubleClick", function ():void {
 		var state:String = videoPlayer.state;
 		if (state == 'playing') {
 			videoPlayer.pause();
 		} else if (state == 'paused' || state == 'stopped') {
 			videoPlayer.play();
 		}
-	});
+	});*/
 	
 	videoPlayer.addEventListener("stateChange", function (e:Event):void {
 		var state:String = videoPlayer.state;
