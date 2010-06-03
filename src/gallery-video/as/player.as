@@ -6,16 +6,21 @@ private var flvPath:String;
 private var playerId:String;
 private var jsCallback:String;
 private var videoMetadata:Object = null;
+private var yuiId:String;
 
 private function initVars():void {
 	flvPath = Application.application.parameters.file;
 	playerId = Application.application.parameters.playerId;
 	jsCallback = Application.application.parameters.jsCallback;
+	yuiId = Application.application.parameters.yuiId;
 	
 	attachListeners();
 }
 
 private function fireEvent(event:String):void {
+    trace("firing: " + event);
+    trace("instance: " + yuiId);
+    trace("to method: " + jsCallback);
 	ExternalInterface.call(jsCallback, playerId, event);
 }
 
@@ -98,6 +103,14 @@ public function setVolume(level:Number):void {
 	videoPlayer.volume = level;
 }
 
+public function getTotalBytes():Number {
+    return videoPlayer.bytesTotal;
+}
+
+public function getCurrentBytes():Number {
+    return videoPlayer.bytesLoaded;
+}
+
 private function initInterface():void {
 	if (ExternalInterface.available) {
 		ExternalInterface.addCallback("play", playMovie);
@@ -106,6 +119,8 @@ private function initInterface():void {
 		ExternalInterface.addCallback("getTotalTime", getTotalTime);
 		ExternalInterface.addCallback("getCurrentTime", getCurrentTime);
 		ExternalInterface.addCallback("setCurrentTime", setCurrentTime);
+		ExternalInterface.addCallback("getTotalBytes", getTotalBytes);
+		ExternalInterface.addCallback("getCurrentBytes", getCurrentBytes);
 		ExternalInterface.addCallback("setVolume", setVolume);
 	}
 }
