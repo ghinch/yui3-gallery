@@ -5,6 +5,4 @@
  * @constructor
  * @description A Radio field node
  */
-Y.RadioField = Y.Base.create('radio-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'radio'
-});
+Y.RadioField = Y.Base.create('radio-field', Y.FormField, [Y.WidgetChild]);

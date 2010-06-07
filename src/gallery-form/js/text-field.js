@@ -5,6 +5,4 @@
  * @constructor
  * @description A text field node
  */
-Y.TextField = Y.Base.create('text-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'text'
-});
+Y.TextField = Y.Base.create('text-field', Y.FormField, [Y.WidgetChild]);

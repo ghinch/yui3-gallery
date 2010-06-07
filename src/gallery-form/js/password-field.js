@@ -5,6 +5,4 @@
  * @constructor
  * @description A password field node
  */
-Y.PasswordField = Y.Base.create('password-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'password'
-});
+Y.PasswordField = Y.Base.create('password-field', Y.FormField, [Y.WidgetChild]);

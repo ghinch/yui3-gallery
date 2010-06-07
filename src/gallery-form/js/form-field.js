@@ -35,14 +35,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	_errorNode : null,
 	
 	/**
-	 * @property _nodeType
-	 * @protected
-	 * @type String
-	 * @description The type of form field to draw
-	 */
-	_nodeType : 'text',
-	
-	/**
 	 * @property _initialValue
 	 * @private
 	 * @type String
@@ -99,23 +91,17 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 */
 	 _setValidator : function (val) {
 		Y.log('Set: ' + val);
-		if (val == "email") {
-			return Y.FormField.VALIDATE_EMAIL_ADDRESS;
-		} else if (val == "phone") {
-			return Y.FormField.VALIDATE_PHONE_NUMBER;
-		} else if (val == "ip") {
-			return Y.FormField.VALIDATE_IP_ADDRESS;
-		} else if (val == "date") {
-			return Y.FormField.VALIDATE_DATE;
-		} else if (val == "time") {
-			return Y.FormField.VALIDATE_TIME;
-		} else if (val == "postal") {
-			return Y.FormField.VALIDATE_POSTAL_CODE;
-		} else if (val == "special") {
-			return Y.FormField.VALIDATE_NO_SPECIAL_CHARS;
-		}
+		var valMap = {
+		    email : Y.FormField.VALIDATE_EMAIL_ADDRESS,
+		    phone : Y.FormField.VALIDATE_PHONE_NUMBER,
+		    ip : Y.FormField.VALIDATE_IP_ADDRESS,
+		    date : Y.FormField.VALIDATE_DATE,
+		    time : Y.FormField.VALIDATE_TIME,
+		    postal : Y.FormField.VALIDATE_POSTAL_CODE,
+		    special : Y.FormField.VALIDATE_NO_SPECIAL_CHARS
+		};
 
-		return val;
+		return (valMap[val] ? valMap[val] : val);
 	 },
 
 	/**
@@ -172,9 +158,14 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 * @description Syncs the fieldNode and this instances attributes
 	 */
 	_syncFieldNode : function () {
+	    var nodeType = this.name.split('-')[0];
+	    if (!nodeType) {
+	        return;
+	    }
+	    
 		this._fieldNode.setAttrs({
 			name : this.get('name'), 
-			type : this._nodeType,
+			type : nodeType,
 			id : this.get('id') + Y.FormField.FIELD_ID_SUFFIX,
 			value : this.get('value')
 		});

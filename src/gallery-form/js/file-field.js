@@ -7,8 +7,6 @@
  */
 
 Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'file',
-
 	_renderFieldNode : function () {
 		var contentBox = this.get('contentBox'),
 			field = contentBox.query('#' + this.get('id'));

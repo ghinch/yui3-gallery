@@ -56,80 +56,6 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	},
 	
 	/**
-	 * @method _validateFields
-	 * @private
-	 * @param {Array} val
-	 * @description Validates the values of the 'fields' attribute
-	 */
-	_validateFields : function (val) {
-		if (!Y.Lang.isArray(val)) {
-			return false;
-		}
-
-		var valid = true;
-		Y.Array.each(val, function (f, i, a) {
-			if ((!f instanceof Y.FormField) || (!Y.Lang.isObject(f))) {
-				valid = false;
-			}
-		});
-		return valid;
-	},
-
-	/**
-	 * @method _setFields
-	 * @private
-	 * @param {Array} fields
-	 * @description Transforms the values passed to the 'fields' attribute into an array of 
-	 *				FormField objects
-	 */
-	_setFields : function (fields) {
-		fields = fields || [];
-		var fieldType, t, fieldMap = {
-		    'hidden' : Y.HiddenField,
-		    'checkbox' : Y.CheckboxField,
-		    'radio' : Y.RadioField,
-		    'password' : Y.PasswordField,
-		    'textarea' : Y.TextareaField,
-		    'select' : Y.SelectField,
-		    'choice' : Y.ChoiceField,
-		    'file' : Y.FileField,
-		    'button' : Y.Button,
-		    'submit' : Y.Button,
-		    'reset' : Y.Button,
-		    'text' : Y.TextField
-		};
-        
-		Y.Array.each(fields, function (f, i, a) {
-			if (!f._classes) {
-				t = f.type;
-				if (Y.Lang.isFunction(t)) {
-					fieldType = t;
-				} else {
-				    fieldType = fieldMap[t];
-				    if (!fieldType) {
-				        fieldType = Y.TextField;
-				    }
-				    
-					if (t =='submit') {
-						f.onclick = {
-							fn : this.submit,
-							scope : this
-						};
-					} else if (t == 'reset') {
-						f.onclick = {
-							fn : this.reset,
-							scope : this
-						};
-					}
-				}
-				
-			//	this.add(new fieldType(f));
-			}
-		}, this);
-		return fields;
-	},
-
-	/**
 	 * @method _parseAction
 	 * @private
 	 * @param {Y.Node} contentBox
@@ -177,8 +103,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			    file : 'FileField',
 			    checkbox : 'CheckboxField',
 			    radio : 'RadioField',
-			    reset : 'Button',
-			    submit : 'Button',
+			    reset : 'ResetButton',
+			    submit : 'SubmitButton',
 			    button : 'Button'
 			};
 		
@@ -243,36 +169,6 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	},
 	
 	/**
-	 * @method _renderFormNode
-	 * @protected
-	 * @description Draws the form node into the contentBox
-	 */
-	/*_renderFormNode : function () {
-		var contentBox = this.get('contentBox'),
-			form = contentBox.query('form');
-
-		if (!form) {
-			form = Y.Node.create(Y.Form.FORM_TEMPLATE);
-			contentBox.appendChild(form);
-		}
-		
-		this._formNode = form;
-	},*/
-	
-	/**
-	 * @method _renderFormFields
-	 * @protected
-	 * @description Draws the form fields into the form node
-	 */
-	/*_renderFormFields : function () {
-		var fields = this.get('fields');
-
-		Y.Array.each(fields, function (f, i, a) {
-			f.render(this._formNode);
-		}, this);
-	},*/
-
-	/**
 	 * @method _syncFormAttributes
 	 * @protected
 	 * @description Syncs the form node action and method attributes
@@ -295,10 +191,9 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @description Validates the form based on each field's validator
 	 */
 	_runValidation : function () {
-		var fields = this.get('fields'),
-			isValid = true;
+		var isValid = true;
 		
-		Y.Array.each(fields, function (f, i, a) {
+		this.each(function (f) {
 			f.set('error',null);
 			if (f.validateField() === false) {
 				isValid = false;
@@ -309,15 +204,13 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	},
 
 	_enableInlineValidation : function () {
-		var fields = this.get('fields');
-		Y.Array.each(fields, function (f, i, a) {
+		this.each(function (f) {
 			f.set('validateInline', true);
 		});
 	},
 
 	_disableInlineValidation : function () {
-		var fields = this.get('fields');
-		Y.Array.each(fields, function (f, i, a) {
+		this.each(function (f) {
 			f.set('validateInline', false);
 		});
 	},
@@ -341,12 +234,11 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @description Resets all form fields to their initial value 
 	 */
 	reset : function () {
-		/*this._formNode.reset();
-		var fields = this.get('fields');
-		Y.Array.each(fields, function (f, i, a) {
+		this._formNode.reset();
+		this.each(function (f) {
 			f.resetFieldNode();
 			f.set('error', null);
-		});*/
+		});
 	},
 	
 	/**
@@ -364,11 +256,11 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 				cfg = {
 					method : formMethod,
 					form : {
-						id : this._formNode,
+						id : this.get('contentBox'),
 						upload : (this.get('encodingType') === Y.Form.MULTIPART_ENCODED)
 					}
 				};
-	
+	            
 				transaction = Y.io(formAction, cfg);
 				this._ioIds[transaction.id] = transaction;
 			} else {
@@ -383,19 +275,18 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @description Get a form field by its name attribute or numerical index
 	 */
 	getField : function (selector) {
-		var fields = this.get('fields'),
-			sel;
+		var sel;
 
 		if (Y.Lang.isNumber(selector)) {
-			return fields[selector];
+			sel = this.item(selector);
 		} else if (Y.Lang.isString(selector)) {
-			Y.Array.each(fields, function (f, i, a) {
+			this.each(function (f) {
 				if (f.get('name') == selector) {
 					sel = f;
 				}
 			});
-			return sel;
 		}
+    	return sel;
 	},
 	
 	initializer : function (config) {
@@ -422,7 +313,7 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		}, this));
 
 		this.after('inlineValidationChange', Y.bind(function (e) {
-			if (e.newValue === true) {
+			if (e.newVal === true) {
 				this._enableInlineValidation();
 			} else {
 				this._disableInlineValidation();
@@ -440,6 +331,14 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		Y.on('io:xdr', Y.bind(this._handleIOEvent, this, 'xdr'));
 		Y.on('io:success', Y.bind(this._handleIOEvent, this, 'success'));
 		Y.on('io:failure', Y.bind(this._handleIOEvent, this, 'failure'));
+		
+		this.each(Y.bind(function(f) {
+            if (f.name =='submit-button') {
+            	f.on('click', Y.bind(this.submit, this));
+            } else if (f.name == 'reset-button') {
+            	f.on('click', Y.bind(this.reset, this));
+            }
+		}, this));
 	},
 	
 	syncUI : function () {
@@ -490,20 +389,16 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		/**
 		 * @attribute fields
 		 * @type Array
+		 * @deprecated Use "children" attribet instead
 		 * @description An array of the fields to be rendered into the Y.Form. Each item in the 
 		 *              array can either be a FormField instance or an object literal defining
 		 *              the properties of the field to be generated. Alternatively, this value
 		 *              will be parsed in from HTML
 		 */
 		fields : {
-			writeOnce : true,
-			validator : function (val) {
-				return this._validateFields(val);
-			},
 			setter : function (val) {
-				return this._setFields(val);
+				return this.set('children', val);
 			}
-			
 		},
 
 		/**
@@ -633,14 +528,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	_errorNode : null,
 	
 	/**
-	 * @property _nodeType
-	 * @protected
-	 * @type String
-	 * @description The type of form field to draw
-	 */
-	_nodeType : 'text',
-	
-	/**
 	 * @property _initialValue
 	 * @private
 	 * @type String
@@ -697,23 +584,17 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 */
 	 _setValidator : function (val) {
 		Y.log('Set: ' + val);
-		if (val == "email") {
-			return Y.FormField.VALIDATE_EMAIL_ADDRESS;
-		} else if (val == "phone") {
-			return Y.FormField.VALIDATE_PHONE_NUMBER;
-		} else if (val == "ip") {
-			return Y.FormField.VALIDATE_IP_ADDRESS;
-		} else if (val == "date") {
-			return Y.FormField.VALIDATE_DATE;
-		} else if (val == "time") {
-			return Y.FormField.VALIDATE_TIME;
-		} else if (val == "postal") {
-			return Y.FormField.VALIDATE_POSTAL_CODE;
-		} else if (val == "special") {
-			return Y.FormField.VALIDATE_NO_SPECIAL_CHARS;
-		}
+		var valMap = {
+		    email : Y.FormField.VALIDATE_EMAIL_ADDRESS,
+		    phone : Y.FormField.VALIDATE_PHONE_NUMBER,
+		    ip : Y.FormField.VALIDATE_IP_ADDRESS,
+		    date : Y.FormField.VALIDATE_DATE,
+		    time : Y.FormField.VALIDATE_TIME,
+		    postal : Y.FormField.VALIDATE_POSTAL_CODE,
+		    special : Y.FormField.VALIDATE_NO_SPECIAL_CHARS
+		};
 
-		return val;
+		return (valMap[val] ? valMap[val] : val);
 	 },
 
 	/**
@@ -770,9 +651,14 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 * @description Syncs the fieldNode and this instances attributes
 	 */
 	_syncFieldNode : function () {
+	    var nodeType = this.name.split('-')[0];
+	    if (!nodeType) {
+	        return;
+	    }
+	    
 		this._fieldNode.setAttrs({
 			name : this.get('name'), 
-			type : this._nodeType,
+			type : nodeType,
 			id : this.get('id') + Y.FormField.FIELD_ID_SUFFIX,
 			value : this.get('value')
 		});
@@ -1299,9 +1185,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
  * @constructor
  * @description A text field node
  */
-Y.TextField = Y.Base.create('text-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'text'
-});
+Y.TextField = Y.Base.create('text-field', Y.FormField, [Y.WidgetChild]);
 /**
  * @class PasswordField
  * @extends FormField
@@ -1309,9 +1193,7 @@ Y.TextField = Y.Base.create('text-field', Y.FormField, [Y.WidgetChild], {
  * @constructor
  * @description A password field node
  */
-Y.PasswordField = Y.Base.create('password-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'password'
-});
+Y.PasswordField = Y.Base.create('password-field', Y.FormField, [Y.WidgetChild]);
 /**
  * @class CheckboxField
  * @extends FormField
@@ -1321,8 +1203,6 @@ Y.PasswordField = Y.Base.create('password-field', Y.FormField, [Y.WidgetChild], 
  */
 
 Y.CheckboxField = Y.Base.create('checkbox-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'checkbox',
-
 	_syncChecked : function () {
 		this._fieldNode.set('checked', this.get('checked'));
 	},
@@ -1330,11 +1210,6 @@ Y.CheckboxField = Y.Base.create('checkbox-field', Y.FormField, [Y.WidgetChild], 
 	initializer : function () {
 		Y.CheckboxField.superclass.initializer.apply(this, arguments);
 	},
-
-	/*renderUI : function () {
-		this._renderFieldNode();
-		this._renderLabelNode();
-	},*/
 
 	syncUI : function () {
 		Y.CheckboxField.superclass.syncUI.apply(this, arguments);
@@ -1368,9 +1243,7 @@ Y.CheckboxField = Y.Base.create('checkbox-field', Y.FormField, [Y.WidgetChild], 
  * @constructor
  * @description A Radio field node
  */
-Y.RadioField = Y.Base.create('radio-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'radio'
-});
+Y.RadioField = Y.Base.create('radio-field', Y.FormField, [Y.WidgetChild]);
 /**
  * @class HiddenField
  * @extends FormField
@@ -1379,8 +1252,6 @@ Y.RadioField = Y.Base.create('radio-field', Y.FormField, [Y.WidgetChild], {
  * @description A hidden field node
  */
 Y.HiddenField = Y.Base.create('hidden-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'hidden',
-
 	/**
 	 * @property _valueDisplayNode
 	 * @protected
@@ -1817,8 +1688,6 @@ Y.Button = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
  */
 
 Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'file',
-
 	_renderFieldNode : function () {
 		var contentBox = this.get('contentBox'),
 			field = contentBox.query('#' + this.get('id'));
@@ -1833,6 +1702,26 @@ Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild], {
 }, {
 	FILE_INPUT_TEMPLATE : '<input type="file" />'
 });
+/**
+ * @class SubmitButton
+ * @extends FormField
+ * @param config {Object} Configuration object
+ * @constructor
+ * @description A submit button
+ */
+Y.SubmitButton = Y.Base.create('submit-button', Y.FormField, [Y.WidgetChild], {
+	_renderLabelNode : function () {}
+});
+/**
+ * @class ResetButton
+ * @extends FormField
+ * @param config {Object} Configuration object
+ * @constructor
+ * @description A reset button
+ */
+ Y.ResetButton = Y.Base.create('reset-button', Y.FormField, [Y.WidgetChild], {
+ 	_renderLabelNode : function () {}
+ });
 
 
 }, '@VERSION@' ,{requires:['node', 'widget-base', 'widget-htmlparser', 'io-form', 'widget-parent', 'widget-child', 'base', 'substitute']});

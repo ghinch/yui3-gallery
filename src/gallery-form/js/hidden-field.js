@@ -6,8 +6,6 @@
  * @description A hidden field node
  */
 Y.HiddenField = Y.Base.create('hidden-field', Y.FormField, [Y.WidgetChild], {
-    _nodeType : 'hidden',
-
 	/**
 	 * @property _valueDisplayNode
 	 * @protected
