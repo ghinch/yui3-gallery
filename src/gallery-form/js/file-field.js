@@ -5,17 +5,8 @@
  * @constructor
  * @description A file field node
  */
-function FileField () {
-    FileField.superclass.constructor.apply(this,arguments);
-}
- 
-Y.mix(FileField, {
-    NAME : 'file-field',
 
-	FILE_INPUT_TEMPLATE : '<input type="file" />'
-});
- 
-Y.extend(FileField, Y.FormField, {
+Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild], {
     _nodeType : 'file',
 
 	_renderFieldNode : function () {
@@ -23,12 +14,12 @@ Y.extend(FileField, Y.FormField, {
 			field = contentBox.query('#' + this.get('id'));
 				
 		if (!field) {
-			field = Y.Node.create(FileField.FILE_INPUT_TEMPLATE);
+			field = Y.Node.create(Y.FileField.FILE_INPUT_TEMPLATE);
 			contentBox.appendChild(field);
 		}
 
 		this._fieldNode = field;
 	}
+}, {
+	FILE_INPUT_TEMPLATE : '<input type="file" />'
 });
- 
-Y.FileField = FileField;

@@ -5,16 +5,6 @@
  * @constructor
  * @description A password field node
  */
-function PasswordField () {
-    PasswordField.superclass.constructor.apply(this,arguments);
-}
-
-Y.mix(PasswordField, {
-    NAME : 'password-field'
-});
-
-Y.extend(PasswordField, Y.FormField, {
+Y.PasswordField = Y.Base.create('password-field', Y.FormField, [Y.WidgetChild], {
     _nodeType : 'password'
 });
-
-Y.PasswordField = PasswordField;

@@ -5,41 +5,7 @@
  * @constructor
  * @description A hidden field node
  */
-function HiddenField () {
-    HiddenField.superclass.constructor.apply(this,arguments);
-}
-
-Y.mix(HiddenField, {
-	/**
-	 * @property HiddenField.NAME
-	 * @type String
-	 * @static
-	 */
-    NAME : 'hidden-field',
-
-	/**
-	 * @property HiddenField.ATTRS
-	 * @type Object
-	 * @static
-	 */
-	ATTRS : {
-		/**
-		 * @attribute displayValue
-		 * @type Boolean
-		 * @default false
-		 * @writeOnce
-		 * @description Set to true to render this field with node displaying the current value
-		 */
-		displayValue : {
-			value : false,
-			writeOnce : true,
-			validator : Y.Lang.isBoolean
-		}
-	}
-
-});
-
-Y.extend(HiddenField, Y.FormField, {
+Y.HiddenField = Y.Base.create('hidden-field', Y.FormField, [Y.WidgetChild], {
     _nodeType : 'hidden',
 
 	/**
@@ -61,12 +27,12 @@ Y.extend(HiddenField, Y.FormField, {
 	},
 
 	renderUI : function () {
-		HiddenField.superclass.renderUI.apply(this, arguments);
+		Y.HiddenField.superclass.renderUI.apply(this, arguments);
 		this._renderValueDisplayNode();
 	},
 
 	bindUI : function () {
-		HiddenField.superclass.bindUI.apply(this, arguments);
+		Y.HiddenField.superclass.bindUI.apply(this, arguments);
 
 		if (this.get('displayValue') === true) {
 			this.after('valueChange', Y.bind(function(m, e) {
@@ -76,6 +42,25 @@ Y.extend(HiddenField, Y.FormField, {
 	},
 
 	clear : function () {}
-});
+}, {
+	/**
+	 * @property HiddenField.ATTRS
+	 * @type Object
+	 * @static
+	 */
+	ATTRS : {
+		/**
+		 * @attribute displayValue
+		 * @type Boolean
+		 * @default false
+		 * @writeOnce
+		 * @description Set to true to render this field with node displaying the current value
+		 */
+		displayValue : {
+			value : false,
+			writeOnce : true,
+			validator : Y.Lang.isBoolean
+		}
+	}
 
-Y.HiddenField = HiddenField;
+});

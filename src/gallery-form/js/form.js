@@ -14,161 +14,13 @@
  * @param config {Object} Configuration object
  * @constructor
  */
-function Form () {
-	Form.superclass.constructor.apply(this,arguments);
-}
 
-Y.mix(Form, {
-	/**
-	 * @property Form.NAME
-	 * @type String
-	 * @static
-	 */
-	NAME : 'form',
-	
-	/**
-	 * @property Form.ATTRS
-	 * @type Object
-	 * @static
-	 */
-	ATTRS : {
-		/**
-		 * @attribute method
-		 * @type String
-		 * @default 'post'
-		 * @description The method by which the form should be transmitted. Valid values are 'get' and 'post'
-		 */
-		method : {
-			value : 'post',
-			validator : function (val) {
-				return this._validateMethod(val);
-			},
-			setter : function (val) {
-				return val.toLowerCase();
-			}
-		},
-
-		/**
-		 * @attribute action
-		 * @type String
-		 * @default ''
-		 * @description A url to which the validated form is to be sent
-		 */
-		action : {
-			value : '',
-			validator : Y.Lang.isString
-		},
-
-		/**
-		 * @attribute fields
-		 * @type Array
-		 * @description An array of the fields to be rendered into the form. Each item in the array can either be
-		 *				a FormField instance or an object literal defining the properties of the field to be
-		 *				generated. Alternatively, this value will be parsed in from HTML
-		 */
-		fields : {
-			writeOnce : true,
-			validator : function (val) {
-				return this._validateFields(val);
-			},
-			setter : function (val) {
-				return this._setFields(val);
-			}
-			
-		},
-
-		/**
-		 * @attribute inlineValidation
-		 * @type Boolean
-		 * @description Set to true to validate fields "on the fly", where they will
-		 *				validate themselves any time the value attribute is changed
-		 * @default false
-		 */
-		inlineValidation : {
-			value : false,
-			validator : Y.Lang.isBoolean
-		},
-
-		/**
-		 * @attribute resetAfterSubmit
-		 * @type Boolean
-		 * @description If true, the form is reset following a successful submit event 
-		 * @default true
-		 */
-		resetAfterSubmit : {
-			value : true,
-			validator : Y.Lang.isBoolean
-		},
-
-		/**
-		 * @attribute encodingType
-		 * @type Number
-		 * @description Set to Form.MULTIPART_ENCODED in order to use the FileField for uploads
-		 * @default Y.Form.URL_ENCODED
-		 */
-		encodingType : {
-			value : Form.URL_ENCODED,
-			validator : Y.Lang.isNumber
-		},
-		
-		/**
-		 * @attribute skipValidationBeforeSubmit
-		 * @type Boolean
-		 * @description Set to true to skip the validation step when submitting
-		 * @default false
-		 */
-		skipValidationBeforeSubmit : {
-			value : false,
-			validator : Y.Lang.isBoolean
-		},
-		
-		submitViaIO : {
-			value : true,
-			validator : Y.Lang.isBoolean
-		}
-	},
-
-	/**
-	 * @property Form.HTML_PARSER
-	 * @type Object
-	 * @static
-	 */
-	HTML_PARSER : {
-		action : function (contentBox) {
-			return this._parseAction(contentBox);
-		},
-		method : function (contentBox) {
-			return this._parseMethod(contentBox);
-		},
-		fields : function (contentBox) {
-			return this._parseFields(contentBox);
-		}
-	},
-
-	/**
-	 * @property Form.FORM_TEMPLATE
-	 * @type String
-	 * @static
-	 * @description The HTML used to create the form Node
-	 */
-	FORM_TEMPLATE : '<form></form>',
-
-	/**
-	 * @property Form.URL_ENCODED
-	 * @type Number
-	 * @description Set the form the default text encoding
-	 */
-	URL_ENCODED : 1,
-
-	/**
-	 * @property Form.MULTIPART_ENCODED
-	 * @type Number
-	 * @description Set form to multipart/form-data encoding for file uploads
-	 */
-	MULTIPART_ENCODED : 2
-});
-
-Y.extend(Form, Y.Widget, {
+Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
+    toString : function () {
+        return this.name;
+    },
+    
+    CONTENT_TEMPLATE : '<form></form>',
 	/**
 	 * @property _formNode
 	 * @type Y.Node
@@ -226,53 +78,50 @@ Y.extend(Form, Y.Widget, {
 	 * @private
 	 * @param {Array} fields
 	 * @description Transforms the values passed to the 'fields' attribute into an array of 
-	 *				Y.FormField objects
+	 *				FormField objects
 	 */
 	_setFields : function (fields) {
 		fields = fields || [];
-		var fieldType, t;
-
+		var fieldType, t, fieldMap = {
+		    'hidden' : Y.HiddenField,
+		    'checkbox' : Y.CheckboxField,
+		    'radio' : Y.RadioField,
+		    'password' : Y.PasswordField,
+		    'textarea' : Y.TextareaField,
+		    'select' : Y.SelectField,
+		    'choice' : Y.ChoiceField,
+		    'file' : Y.FileField,
+		    'button' : Y.Button,
+		    'submit' : Y.Button,
+		    'reset' : Y.Button,
+		    'text' : Y.TextField
+		};
+        
 		Y.Array.each(fields, function (f, i, a) {
 			if (!f._classes) {
 				t = f.type;
 				if (Y.Lang.isFunction(t)) {
 					fieldType = t;
 				} else {
-					if (t == 'hidden') {
-						fieldType = Y.HiddenField;
-					} else if (t == 'checkbox') {
-						fieldType = Y.CheckboxField;
-					} else if (t == 'radio') {
-						fieldType = Y.RadioField;
-					} else if (t == 'password') {
-						fieldType = Y.PasswordField;
-					} else if (t == 'textarea') {
-						fieldType = Y.TextareaField;
-					} else if (t == 'select') {
-						fieldType = Y.SelectField;
-					} else if (t == 'choice') {
-						fieldType = Y.ChoiceField;
-					} else if (t == 'file') {
-						fieldType = Y.FileField;
-					} else if (t == 'button' || t == 'submit' || t == 'reset') {
-						fieldType = Y.Button;
-						if (t =='submit') {
-							f.onclick = {
-								fn : this.submit,
-								scope : this
-							};
-						} else if (t == 'reset') {
-							f.onclick = {
-								fn : this.reset,
-								scope : this
-							};
-						}
-					} else {
-						fieldType = Y.TextField;
+				    fieldType = fieldMap[t];
+				    if (!fieldType) {
+				        fieldType = Y.TextField;
+				    }
+				    
+					if (t =='submit') {
+						f.onclick = {
+							fn : this.submit,
+							scope : this
+						};
+					} else if (t == 'reset') {
+						f.onclick = {
+							fn : this.reset,
+							scope : this
+						};
 					}
 				}
 				
-				fields[i] = new fieldType(f);
+			//	this.add(new fieldType(f));
 			}
 		}, this);
 		return fields;
@@ -286,6 +135,9 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_parseAction : function (contentBox) {
 		var form = contentBox.one('form');
+        if (!form) {
+            form = contentBox;
+        }
 		if (form) {
 			return form.get('action');
 		}
@@ -299,6 +151,9 @@ Y.extend(Form, Y.Widget, {
 	 */
 	_parseMethod : function (contentBox) {
 		var form = contentBox.one('form');
+		if (!form) {
+		    form = contentBox;
+		}
 		if (form) {
 			return form.get('method');
 		}
@@ -313,26 +168,38 @@ Y.extend(Form, Y.Widget, {
 	_parseFields : function (contentBox) {
 		var children = contentBox.all('*'),
 			labels = contentBox.all('label'),
-			fields = [];
+			fields = [],
+			inputMap = {
+			    text : 'TextField',
+			    hidden : 'HiddenField',
+			    file : 'FileField',
+			    checkbox : 'CheckboxField',
+			    radio : 'RadioField',
+			    reset : 'Button',
+			    submit : 'Button',
+			    button : 'Button'
+			};
 		
 		children.each(function(node, index, nodeList) {
 			var nodeName = node.get('nodeName'), 
 				nodeId = node.get('id'),
+				type,
 				o, c = [];
 			if (nodeName == 'INPUT') {
+			    type = node.get('type');
 				o = {
-					type: node.get('type'),
+					type: (inputMap[type] ? inputMap[type] : 'TextField'),
 					name : node.get('name'),
 					value : node.get('value'),
 					checked : node.get('checked')
 				};
 
-				if (o.type == 'submit' || o.type == 'reset' || o.type == 'button') {
+				if (o.type == 'Button') {
 					o.label = node.get('value');
 				}
 			} else if (nodeName == 'BUTTON') {
 				o = {
-					type : 'button',
+					type : 'Button',
 					name : node.get('name'),
 					label : node.get('innerHTML')
 				};
@@ -344,13 +211,13 @@ Y.extend(Form, Y.Widget, {
 					});
 				});
 				o = {
-					type : 'select',
+					type : 'SelectField',
 					name : node.get('name'),
 					choices : c
 				};
 			} else if (nodeName == 'TEXTAREA') {
 				o = {
-					type: 'textarea',
+					type: 'TextareaField',
 					name : node.get('name'),
 					value : node.get('innerHTML')
 				};
@@ -378,30 +245,30 @@ Y.extend(Form, Y.Widget, {
 	 * @protected
 	 * @description Draws the form node into the contentBox
 	 */
-	_renderFormNode : function () {
+	/*_renderFormNode : function () {
 		var contentBox = this.get('contentBox'),
 			form = contentBox.query('form');
 
 		if (!form) {
-			form = Y.Node.create(Form.FORM_TEMPLATE);
+			form = Y.Node.create(Y.Form.FORM_TEMPLATE);
 			contentBox.appendChild(form);
 		}
 		
 		this._formNode = form;
-	},
+	},*/
 	
 	/**
 	 * @method _renderFormFields
 	 * @protected
 	 * @description Draws the form fields into the form node
 	 */
-	_renderFormFields : function () {
+	/*_renderFormFields : function () {
 		var fields = this.get('fields');
 
 		Y.Array.each(fields, function (f, i, a) {
 			f.render(this._formNode);
 		}, this);
-	},
+	},*/
 
 	/**
 	 * @method _syncFormAttributes
@@ -409,13 +276,14 @@ Y.extend(Form, Y.Widget, {
 	 * @description Syncs the form node action and method attributes
 	 */
 	_syncFormAttributes : function () {
-		this._formNode.setAttrs({
+	    var contentBox = this.get('contentBox');
+		contentBox.setAttrs({
 			action : this.get('action'),
 			method : this.get('method')
 		});
 
-		if (this.get('encodingType') === Form.MULTIPART_ENCODED) {
-			this._formNode.setAttribute('enctype', 'multipart/form-data');
+		if (this.get('encodingType') === Y.Form.MULTIPART_ENCODED) {
+			contentBox.setAttribute('enctype', 'multipart/form-data');
 		}
 	},
 	
@@ -471,12 +339,12 @@ Y.extend(Form, Y.Widget, {
 	 * @description Resets all form fields to their initial value 
 	 */
 	reset : function () {
-		this._formNode.reset();
+		/*this._formNode.reset();
 		var fields = this.get('fields');
 		Y.Array.each(fields, function (f, i, a) {
 			f.resetFieldNode();
 			f.set('error', null);
-		});
+		});*/
 	},
 	
 	/**
@@ -495,7 +363,7 @@ Y.extend(Form, Y.Widget, {
 					method : formMethod,
 					form : {
 						id : this._formNode,
-						upload : (this.get('encodingType') === Form.MULTIPART_ENCODED)
+						upload : (this.get('encodingType') === Y.Form.MULTIPART_ENCODED)
 					}
 				};
 	
@@ -541,16 +409,13 @@ Y.extend(Form, Y.Widget, {
 	},
 	
 	destructor : function () {
-		this._formNode = null;
 	},
 	
 	renderUI : function () {
-		this._renderFormNode();
-		this._renderFormFields();
 	},
 	
 	bindUI : function () {
-		this._formNode.on('submit', Y.bind(function (e) {
+		this.get('contentBox').on('submit', Y.bind(function (e) {
 			e.halt();
 		}, this));
 
@@ -581,6 +446,151 @@ Y.extend(Form, Y.Widget, {
 			this._enableInlineValidation();
 		}
 	}
-});
+}, {
+	
+	/**
+	 * @property Form.ATTRS
+	 * @type Object
+	 * @static
+	 */
+	ATTRS : {
+    	defaultChildType: {  
+    	    value: "TextField"
+    	},
+    	
+		/**
+		 * @attribute method
+		 * @type String
+		 * @default 'post'
+		 * @description The method by which the form should be transmitted. Valid values are 'get' and 'post'
+		 */
+		method : {
+			value : 'post',
+			validator : function (val) {
+				return this._validateMethod(val);
+			},
+			setter : function (val) {
+				return val.toLowerCase();
+			}
+		},
 
-Y.Form = Form;
+		/**
+		 * @attribute action
+		 * @type String
+		 * @default '.'
+		 * @description A url to which the validated form is to be sent
+		 */
+		action : {
+			value : '.',
+			validator : Y.Lang.isString
+		},
+
+		/**
+		 * @attribute fields
+		 * @type Array
+		 * @description An array of the fields to be rendered into the Y.Form. Each item in the 
+		 *              array can either be a FormField instance or an object literal defining
+		 *              the properties of the field to be generated. Alternatively, this value
+		 *              will be parsed in from HTML
+		 */
+		fields : {
+			writeOnce : true,
+			validator : function (val) {
+				return this._validateFields(val);
+			},
+			setter : function (val) {
+				return this._setFields(val);
+			}
+			
+		},
+
+		/**
+		 * @attribute inlineValidation
+		 * @type Boolean
+		 * @description Set to true to validate fields "on the fly", where they will
+		 *				validate themselves any time the value attribute is changed
+		 * @default false
+		 */
+		inlineValidation : {
+			value : false,
+			validator : Y.Lang.isBoolean
+		},
+
+		/**
+		 * @attribute resetAfterSubmit
+		 * @type Boolean
+		 * @description If true, the form is reset following a successful submit event 
+		 * @default true
+		 */
+		resetAfterSubmit : {
+			value : true,
+			validator : Y.Lang.isBoolean
+		},
+
+		/**
+		 * @attribute encodingType
+		 * @type Number
+		 * @description Set to Form.MULTIPART_ENCODED in order to use the FileField for uploads
+		 * @default Form.URL_ENCODED
+		 */
+		encodingType : {
+			value : 1,
+			validator : Y.Lang.isNumber
+		},
+		
+		/**
+		 * @attribute skipValidationBeforeSubmit
+		 * @type Boolean
+		 * @description Set to true to skip the validation step when submitting
+		 * @default false
+		 */
+		skipValidationBeforeSubmit : {
+			value : false,
+			validator : Y.Lang.isBoolean
+		},
+		
+		submitViaIO : {
+			value : true,
+			validator : Y.Lang.isBoolean
+		}
+	},
+
+	/**
+	 * @property Form.HTML_PARSER
+	 * @type Object
+	 * @static
+	 */
+	HTML_PARSER : {
+		action : function (contentBox) {
+			return this._parseAction(contentBox);
+		},
+		method : function (contentBox) {
+			return this._parseMethod(contentBox);
+		},
+		children : function (contentBox) {
+			return this._parseFields(contentBox);
+		}
+	},
+
+	/**
+	 * @property Form.FORM_TEMPLATE
+	 * @type String
+	 * @static
+	 * @description The HTML used to create the form Node
+	 */
+	FORM_TEMPLATE : '<form></form>',
+
+	/**
+	 * @property Form.URL_ENCODED
+	 * @type Number
+	 * @description Set the form the default text encoding
+	 */
+	URL_ENCODED : 1,
+
+	/**
+	 * @property Form.MULTIPART_ENCODED
+	 * @type Number
+	 * @description Set form to multipart/form-data encoding for file uploads
+	 */
+	MULTIPART_ENCODED : 2
+});
