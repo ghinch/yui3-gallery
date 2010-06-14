@@ -22,35 +22,7 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
     syncUI : function () {
         this.syncControls();
     },
-    
-    _fadeOut : function () {
-        var bb = this.get('boundingBox'),
-            anim = new Y.Anim({
-                node : bb,
-                to : {
-                    opacity : 0
-                }
-            });
-        anim.after('end', function () {
-            bb.setStyle('display', 'none');
-        });
-        anim.run();
-    },
-    
-    _fadeIn : function () {
-        var bb = this.get('boundingBox'),
-            anim = new Y.Anim({
-                node : bb,
-                to : {
-                    opacity : 1
-                }
-            });
-        anim.on('start', function () {
-            bb.setStyle('display', '');
-        });
-        anim.run();
-    },
-    
+        
     _toggleVolume : function () {
         var cb = this.get('contentBox'),
             volBB = this._volumeSlider.get('boundingBox'),
@@ -76,32 +48,46 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
     },
     
     renderControls : function () {
-        var contentBox = this.get('contentBox');
+        var contentBox = this.get('contentBox'),
+            controlWidth = this.get('width'),
+            curTimeBox, remTimeBox, playBarWidth;
+        
         contentBox.set('innerHTML',
-            '<button class="yui-video-controls-button yui-video-controls-button-play">&nbsp;</button>' + 
-            '<button class="yui-video-controls-button yui-video-controls-button-pause">&nbsp;</button>' + 
-            '<button class="yui-video-controls-button yui-video-controls-button-stop">&nbsp;</button>' + 
-            '<span class="yui-video-controls-current-time">00:00:00</span>' +
-            '<span class="yui-video-controls-total"><span class="yui-video-controls-loaded"></span></span>' +
-            '<span class="yui-video-controls-remaining-time">00:00:00</span>' +
-            '<button class="yui-video-controls-button yui-video-controls-button-volume">&nbsp;</button>' +
-            '<span class="yui-video-controls-volume-slider"></span>');
+            '<button class="yui3-video-controls-button yui3-video-controls-button-play">&nbsp;</button>' + 
+            '<button class="yui3-video-controls-button yui3-video-controls-button-pause">&nbsp;</button>' + 
+            '<button class="yui3-video-controls-button yui3-video-controls-button-stop">&nbsp;</button>' + 
+            '<span class="yui3-video-controls-current-time">00:00:00</span>' +
+            '<span class="yui3-video-controls-total"><span class="yui3-video-controls-loaded"></span></span>' +
+            '<span class="yui3-video-controls-remaining-time">00:00:00</span>' +
+            '<button class="yui3-video-controls-button yui3-video-controls-button-volume">&nbsp;</button>' +
+            '<span class="yui3-video-controls-volume-slider"></span>');
+        
+        curTimeBox = contentBox.one('.yui3-video-controls-current-time');
+        remTimeBox = contentBox.one('.yui3-video-controls-remaining-time');
+        
+        playBarWidth = Math.floor(controlWidth -
+                        parseInt(curTimeBox.getStyle('left'), 10) -
+                        parseInt(curTimeBox.getComputedStyle('width'), 10) -
+                        parseInt(remTimeBox.getStyle('right'), 10) -
+                        parseInt(remTimeBox.getComputedStyle('width'), 10) -
+                        24);
             
         this._progressSlider = new Y.Slider({
         	min : 0,
-        	max : 600,
-        	length : 600,
-        	thumbUrl : 'playhead.png'
+        	max : playBarWidth,
+        	length : playBarWidth,
+        	thumbUrl : Y.VideoControls.PLAYHEAD_IMG
         });
-        this._progressSlider.render(contentBox.one('.yui-video-controls-total'));
+        this._progressSlider.render(contentBox.one('.yui3-video-controls-total'));
         
         this._volumeSlider = new Y.Slider({
         	min : 100,
         	max : 0,
         	length : 100,
         	value : 100,
+        	thumbUrl : Y.VideoControls.VOLUME_IMG,
         	axis : 'y',
-        	boundingBox : contentBox.one('.yui-video-controls-volume-slider')
+        	boundingBox : contentBox.one('.yui3-video-controls-volume-slider')
         });
         this._volumeSlider.render();
     },
@@ -110,10 +96,9 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
         var parent = this.get('parent'),
             player = parent.getPlayer(),
             contentBox = this.get('contentBox'),
-            //parentBoundingBox = parent.get('boundingBox'),
-            loadedBar = contentBox.one('.yui-video-controls-loaded'),
-            curTimeDisplay = contentBox.one('.yui-video-controls-current-time'),
-            remTimeDisplay = contentBox.one('.yui-video-controls-remaining-time'),
+            loadedBar = contentBox.one('.yui3-video-controls-loaded'),
+            curTimeDisplay = contentBox.one('.yui3-video-controls-current-time'),
+            remTimeDisplay = contentBox.one('.yui3-video-controls-remaining-time'),
             prefix = '';
         
         if (player) {
@@ -122,7 +107,6 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
         
         parent.after(prefix + 'totalTimeChange', Y.bind(function (e) {
             this._totalTime = e.newVal;
-            //this._fadeOut();
         }, this));
         
         parent.after(prefix + 'currentTimeChange', Y.bind(function (e) {
@@ -135,42 +119,24 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
             }
         }, this));
         
-        /**parentBoundingBox.after('mouseout', Y.bind(function (e) {
-            var pX = e.pageX,
-                pY = e.pageY,
-                bbX = parentBoundingBox.getX(),
-                bbY = parentBoundingBox.getY();
-                
-            if ((pX > bbX && pX < bbX + parent.get('width')) &&
-                (pY > bbY && pY < bbY + parent.get('height'))) {
-                 return;
-            }
-            
-            this._fadeOut();
-        }, this));
-        
-        parent.after('mouseover', Y.bind(function () {
-            this._fadeIn();
-        }, this));*/
-        
         parent.after(prefix + 'percentLoadedChange', function (e) {            
             loadedBar.setStyle('width', Math.ceil((e.newVal / 100) * 600) + 'px');
         });
         
-        contentBox.one('.yui-video-controls-button-play').after('click', function (e) {
+        contentBox.one('.yui3-video-controls-button-play').after('click', function (e) {
             player.set('playing', true);
         });
         
-        contentBox.one('.yui-video-controls-button-pause').after('click', function (e) {
+        contentBox.one('.yui3-video-controls-button-pause').after('click', function (e) {
             player.set('playing', false);
         });
         
-        contentBox.one('.yui-video-controls-button-stop').after('click', function (e) {
+        contentBox.one('.yui3-video-controls-button-stop').after('click', function (e) {
             player.set('playing', false);
             player.set('currentTime', 0);
         });
         
-        contentBox.one('.yui-video-controls-button-volume').after('click', Y.bind(function (e) {
+        contentBox.one('.yui3-video-controls-button-volume').after('click', Y.bind(function (e) {
             this._toggleVolume();
         }, this));
         
@@ -198,6 +164,12 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
             value : 32
         }
     },
+    
+    PLAYHEAD_IMG : 'assets/playhead_slider.png',
+    
+    VOLUME_IMG : 'assets/volume_slider.png',
+    
+    BUTTON_WIDTH : 32,
     
     secondsToTimestamp : function (seconds) {
     	var whole = Math.floor(seconds),

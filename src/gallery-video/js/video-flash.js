@@ -45,22 +45,25 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
             vDOMNode = Y.Node.getDOMNode(v),
             eventMap = {};
 
-        eventMap.metadataReceived = function (e) {            	
-        	this.set('totalTime', vDOMNode.getTotalTime());
-        	this.set('totalBytes', vDOMNode.getTotalBytes());
+        eventMap.stateChange = function (e) {
+            var totalTime = vDOMNode.getTotalTime(),
+                totalBytes = vDOMNode.getTotalBytes();
+            
+            if (Y.Lang.isNumber(totalTime) && Y.Lang.isNumber(totalBytes)) {
+                delete eventMap.stateChange;
+            }
+            
+        	this.set('totalTime', totalTime);
+        	this.set('totalBytes', totalBytes);
         };
         
-        eventMap.playheadUpdate = function (e) {
+        eventMap.currentTimeChange = function (e) {
             this.set('currentTime', vDOMNode.getCurrentTime(), {source : 'self'});
         };
         
-        eventMap.progress = function (e) {
+        eventMap.bytesLoadedChange = function (e) {
             this.set('currentBytes', vDOMNode.getCurrentBytes());
             this.set('percentLoaded', (vDOMNode.getCurrentBytes() * 100) / this.get('totalBytes'));
-        };
-        
-        eventMap.ready = function (e) {
-            this.set('percentLoaded', 100);
         };
         
         eventMap.play = function (e) {
@@ -97,13 +100,15 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
     
     _handlePlayingChange : function (e) {
         if (e.source && e.source == 'self') {
+            // @TODO: Need to stop the event here or JS error occurs. Not sure why
+            e.halt();
             return;
         }
         
         if (e.newVal === true) {
-			Y.Node.getDOMNode(this._videoNode).play();
+			Y.Node.getDOMNode(this._videoNode).playMedia();
         } else {
-			Y.Node.getDOMNode(this._videoNode).pause();
+			Y.Node.getDOMNode(this._videoNode).pauseMedia();
 		}
     },
 
@@ -111,6 +116,12 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
         return 0;
     }
 }, {
+    ATTRS : {
+        playing : {
+            value : true
+        }
+    },
+    
     MIME_TYPES : [
         'video/x-flv',
         'video/mp4',
@@ -141,7 +152,6 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
 });
 
 YUI.galleryVideoListener = function (id, event) {
-    console.log(id, event);
     Y.VideoFlash.flashEventTarget.fire('flashEvent', {
         id : id,
         event : event

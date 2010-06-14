@@ -22,11 +22,11 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
     initializer : function () {            
         if (this.get('autoCreate') === true) {
             this._findPlayer();
+            this._setControls();
         }
-        
-        this._setControls();
     },
     
+    // @TODO : Refactor all of this, too messy
     _findPlayer : function () {
         var media = this.get('media'),
             playerMap = {
@@ -34,28 +34,49 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
                 flash : Y.VideoFlash,
                 quicktime : Y.VideoQuicktime
             },
+            usableMap = [],
+            playerIndex = 0,
+            useIndex, 
+            useMedia,
             player;
         
-        Y.Array.some(media, Y.bind(function (m) {
-            Y.Array.some(Y.Video.RENDER_ORDER, function (key) {
-                player = playerMap[key];
-                var canUse = player.checkCompatibility(m.mimeType, m.codecs);
+        // Loop through each of the media and find the best (lowest indexed)
+        // player to use for that media. Store that in an array to find the
+        // best value from
+        Y.Array.each(media, Y.bind(function (m, index) {
+            Y.Array.some(Y.Video.RENDER_ORDER, function (key, rendererIndex) {
+                var player = playerMap[key],
+                    canUse = player.checkCompatibility(m.mimeType, m.codecs);
                 
-                if (canUse === false) {
-                    player = null;
-                }
+                usableMap[index] = (canUse === true) ? rendererIndex : false;
                 
                 return canUse;
-            });
-            
-            if (player) {
-                m.width = this.get('width');
-                m.height = this.get('height');
-                m.controls = (this.get('customControls') === false);
-                this.add((new player(m)));
-                return true;
+            });    
+        }, this));
+        
+        // In the array of player indexes to use for each media, find the
+        // best (lowest player index) media to use
+        Y.Array.each(usableMap, Y.bind(function (val, mediaIndex) {
+            if (Y.Lang.isNumber(val) && val < playerIndex) {
+                playerIndex = val;
+                useIndex = mediaIndex;
+            } else if (val === 0 && !Y.Lang.isNumber(useIndex)) {
+                useIndex = mediaIndex;
             }
         }, this));
+        
+        // If there is a player to use, render it
+        if (Y.Lang.isNumber(useIndex)) {
+            player = playerMap[Y.Video.RENDER_ORDER[playerIndex]];
+            useMedia = media[useIndex];
+            useMedia.width = this.get('width');
+            useMedia.height = this.get('height');
+            useMedia.controls = (this.get('customControls') === false);
+            this.add((new player(useMedia)));
+            return true;
+        }
+        
+        return false;
     },
     
     _setControls : function () {
@@ -97,14 +118,18 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
     
     bindUI : function () {
         var player = this.getPlayer();
-            
-        player.after('playingChange', Y.bind(function (e) {
-            this._syncPlaying(e.newVal);
-        }, this));
+        if (player) {
+            player.after('playingChange', Y.bind(function (e) {
+                this._syncPlaying(e.newVal);
+            }, this));
+        }
     },
     
     syncUI : function () {
-        this._syncPlaying(this.getPlayer().get('playing'));
+        var player = this.getPlayer();
+        if (player) {
+            this._syncPlaying(player.get('playing'));
+        }
     },
     
     getPlayer : function () {

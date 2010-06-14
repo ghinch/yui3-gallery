@@ -304,8 +304,11 @@ Y.VideoHTML5 = Y.Base.create('video-html5', Y._VideoBase, [Y.WidgetChild], {
 	    } else {
 			Y.Node.getDOMNode(this._videoNode).pause();
 	    }
-	}
+	},
 	
+    getControlsHeight : function () {
+        return 0;
+    }
 }, {		
 	checkCompatibility : function (mimeType, codecs) {
 		try {
@@ -367,22 +370,25 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
             vDOMNode = Y.Node.getDOMNode(v),
             eventMap = {};
 
-        eventMap.metadataReceived = function (e) {            	
-        	this.set('totalTime', vDOMNode.getTotalTime());
-        	this.set('totalBytes', vDOMNode.getTotalBytes());
+        eventMap.stateChange = function (e) {
+            var totalTime = vDOMNode.getTotalTime(),
+                totalBytes = vDOMNode.getTotalBytes();
+            
+            if (Y.Lang.isNumber(totalTime) && Y.Lang.isNumber(totalBytes)) {
+                delete eventMap.stateChange;
+            }
+            
+        	this.set('totalTime', totalTime);
+        	this.set('totalBytes', totalBytes);
         };
         
-        eventMap.playheadUpdate = function (e) {
+        eventMap.currentTimeChange = function (e) {
             this.set('currentTime', vDOMNode.getCurrentTime(), {source : 'self'});
         };
         
-        eventMap.progress = function (e) {
+        eventMap.bytesLoadedChange = function (e) {
             this.set('currentBytes', vDOMNode.getCurrentBytes());
             this.set('percentLoaded', (vDOMNode.getCurrentBytes() * 100) / this.get('totalBytes'));
-        };
-        
-        eventMap.ready = function (e) {
-            this.set('percentLoaded', 100);
         };
         
         eventMap.play = function (e) {
@@ -419,17 +425,28 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
     
     _handlePlayingChange : function (e) {
         if (e.source && e.source == 'self') {
+            // @TODO: Need to stop the event here or JS error occurs. Not sure why
+            e.halt();
             return;
         }
         
         if (e.newVal === true) {
-			Y.Node.getDOMNode(this._videoNode).play();
+			Y.Node.getDOMNode(this._videoNode).playMedia();
         } else {
-			Y.Node.getDOMNode(this._videoNode).pause();
+			Y.Node.getDOMNode(this._videoNode).pauseMedia();
 		}
-    }
+    },
 
+    getControlsHeight : function () {
+        return 0;
+    }
 }, {
+    ATTRS : {
+        playing : {
+            value : true
+        }
+    },
+    
     MIME_TYPES : [
         'video/x-flv',
         'video/mp4',
@@ -460,7 +477,6 @@ Y.VideoFlash = Y.Base.create('video-quicktime', Y._VideoBase, [Y.WidgetChild], {
 });
 
 YUI.galleryVideoListener = function (id, event) {
-    console.log(id, event);
     Y.VideoFlash.flashEventTarget.fire('flashEvent', {
         id : id,
         event : event
@@ -793,35 +809,7 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
     syncUI : function () {
         this.syncControls();
     },
-    
-    _fadeOut : function () {
-        var bb = this.get('boundingBox'),
-            anim = new Y.Anim({
-                node : bb,
-                to : {
-                    opacity : 0
-                }
-            });
-        anim.after('end', function () {
-            bb.setStyle('display', 'none');
-        });
-        anim.run();
-    },
-    
-    _fadeIn : function () {
-        var bb = this.get('boundingBox'),
-            anim = new Y.Anim({
-                node : bb,
-                to : {
-                    opacity : 1
-                }
-            });
-        anim.on('start', function () {
-            bb.setStyle('display', '');
-        });
-        anim.run();
-    },
-    
+        
     _toggleVolume : function () {
         var cb = this.get('contentBox'),
             volBB = this._volumeSlider.get('boundingBox'),
@@ -847,32 +835,46 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
     },
     
     renderControls : function () {
-        var contentBox = this.get('contentBox');
+        var contentBox = this.get('contentBox'),
+            controlWidth = this.get('width'),
+            curTimeBox, remTimeBox, playBarWidth;
+        
         contentBox.set('innerHTML',
-            '<button class="yui-video-controls-button yui-video-controls-button-play">&nbsp;</button>' + 
-            '<button class="yui-video-controls-button yui-video-controls-button-pause">&nbsp;</button>' + 
-            '<button class="yui-video-controls-button yui-video-controls-button-stop">&nbsp;</button>' + 
-            '<span class="yui-video-controls-current-time">00:00:00</span>' +
-            '<span class="yui-video-controls-total"><span class="yui-video-controls-loaded"></span></span>' +
-            '<span class="yui-video-controls-remaining-time">00:00:00</span>' +
-            '<button class="yui-video-controls-button yui-video-controls-button-volume">&nbsp;</button>' +
-            '<span class="yui-video-controls-volume-slider"></span>');
+            '<button class="yui3-video-controls-button yui3-video-controls-button-play">&nbsp;</button>' + 
+            '<button class="yui3-video-controls-button yui3-video-controls-button-pause">&nbsp;</button>' + 
+            '<button class="yui3-video-controls-button yui3-video-controls-button-stop">&nbsp;</button>' + 
+            '<span class="yui3-video-controls-current-time">00:00:00</span>' +
+            '<span class="yui3-video-controls-total"><span class="yui3-video-controls-loaded"></span></span>' +
+            '<span class="yui3-video-controls-remaining-time">00:00:00</span>' +
+            '<button class="yui3-video-controls-button yui3-video-controls-button-volume">&nbsp;</button>' +
+            '<span class="yui3-video-controls-volume-slider"></span>');
+        
+        curTimeBox = contentBox.one('.yui3-video-controls-current-time');
+        remTimeBox = contentBox.one('.yui3-video-controls-remaining-time');
+        
+        playBarWidth = Math.floor(controlWidth -
+                        parseInt(curTimeBox.getStyle('left'), 10) -
+                        parseInt(curTimeBox.getComputedStyle('width'), 10) -
+                        parseInt(remTimeBox.getStyle('right'), 10) -
+                        parseInt(remTimeBox.getComputedStyle('width'), 10) -
+                        24);
             
         this._progressSlider = new Y.Slider({
         	min : 0,
-        	max : 600,
-        	length : 600,
-        	thumbUrl : 'playhead.png'
+        	max : playBarWidth,
+        	length : playBarWidth,
+        	thumbUrl : Y.VideoControls.PLAYHEAD_IMG
         });
-        this._progressSlider.render(contentBox.one('.yui-video-controls-total'));
+        this._progressSlider.render(contentBox.one('.yui3-video-controls-total'));
         
         this._volumeSlider = new Y.Slider({
         	min : 100,
         	max : 0,
         	length : 100,
         	value : 100,
+        	thumbUrl : Y.VideoControls.VOLUME_IMG,
         	axis : 'y',
-        	boundingBox : contentBox.one('.yui-video-controls-volume-slider')
+        	boundingBox : contentBox.one('.yui3-video-controls-volume-slider')
         });
         this._volumeSlider.render();
     },
@@ -881,10 +883,9 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
         var parent = this.get('parent'),
             player = parent.getPlayer(),
             contentBox = this.get('contentBox'),
-            //parentBoundingBox = parent.get('boundingBox'),
-            loadedBar = contentBox.one('.yui-video-controls-loaded'),
-            curTimeDisplay = contentBox.one('.yui-video-controls-current-time'),
-            remTimeDisplay = contentBox.one('.yui-video-controls-remaining-time'),
+            loadedBar = contentBox.one('.yui3-video-controls-loaded'),
+            curTimeDisplay = contentBox.one('.yui3-video-controls-current-time'),
+            remTimeDisplay = contentBox.one('.yui3-video-controls-remaining-time'),
             prefix = '';
         
         if (player) {
@@ -893,7 +894,6 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
         
         parent.after(prefix + 'totalTimeChange', Y.bind(function (e) {
             this._totalTime = e.newVal;
-            //this._fadeOut();
         }, this));
         
         parent.after(prefix + 'currentTimeChange', Y.bind(function (e) {
@@ -906,42 +906,24 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
             }
         }, this));
         
-        /**parentBoundingBox.after('mouseout', Y.bind(function (e) {
-            var pX = e.pageX,
-                pY = e.pageY,
-                bbX = parentBoundingBox.getX(),
-                bbY = parentBoundingBox.getY();
-                
-            if ((pX > bbX && pX < bbX + parent.get('width')) &&
-                (pY > bbY && pY < bbY + parent.get('height'))) {
-                 return;
-            }
-            
-            this._fadeOut();
-        }, this));
-        
-        parent.after('mouseover', Y.bind(function () {
-            this._fadeIn();
-        }, this));*/
-        
         parent.after(prefix + 'percentLoadedChange', function (e) {            
             loadedBar.setStyle('width', Math.ceil((e.newVal / 100) * 600) + 'px');
         });
         
-        contentBox.one('.yui-video-controls-button-play').after('click', function (e) {
+        contentBox.one('.yui3-video-controls-button-play').after('click', function (e) {
             player.set('playing', true);
         });
         
-        contentBox.one('.yui-video-controls-button-pause').after('click', function (e) {
+        contentBox.one('.yui3-video-controls-button-pause').after('click', function (e) {
             player.set('playing', false);
         });
         
-        contentBox.one('.yui-video-controls-button-stop').after('click', function (e) {
+        contentBox.one('.yui3-video-controls-button-stop').after('click', function (e) {
             player.set('playing', false);
             player.set('currentTime', 0);
         });
         
-        contentBox.one('.yui-video-controls-button-volume').after('click', Y.bind(function (e) {
+        contentBox.one('.yui3-video-controls-button-volume').after('click', Y.bind(function (e) {
             this._toggleVolume();
         }, this));
         
@@ -969,6 +951,12 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
             value : 32
         }
     },
+    
+    PLAYHEAD_IMG : 'assets/playhead_slider.png',
+    
+    VOLUME_IMG : 'assets/volume_slider.png',
+    
+    BUTTON_WIDTH : 32,
     
     secondsToTimestamp : function (seconds) {
     	var whole = Math.floor(seconds),
@@ -1007,11 +995,11 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
     initializer : function () {            
         if (this.get('autoCreate') === true) {
             this._findPlayer();
+            this._setControls();
         }
-        
-        this._setControls();
     },
     
+    // @TODO : Refactor all of this, too messy
     _findPlayer : function () {
         var media = this.get('media'),
             playerMap = {
@@ -1019,28 +1007,49 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
                 flash : Y.VideoFlash,
                 quicktime : Y.VideoQuicktime
             },
+            usableMap = [],
+            playerIndex = 0,
+            useIndex, 
+            useMedia,
             player;
         
-        Y.Array.some(media, Y.bind(function (m) {
-            Y.Array.some(Y.Video.RENDER_ORDER, function (key) {
-                player = playerMap[key];
-                var canUse = player.checkCompatibility(m.mimeType, m.codecs);
+        // Loop through each of the media and find the best (lowest indexed)
+        // player to use for that media. Store that in an array to find the
+        // best value from
+        Y.Array.each(media, Y.bind(function (m, index) {
+            Y.Array.some(Y.Video.RENDER_ORDER, function (key, rendererIndex) {
+                var player = playerMap[key],
+                    canUse = player.checkCompatibility(m.mimeType, m.codecs);
                 
-                if (canUse === false) {
-                    player = null;
-                }
+                usableMap[index] = (canUse === true) ? rendererIndex : false;
                 
                 return canUse;
-            });
-            
-            if (player) {
-                m.width = this.get('width');
-                m.height = this.get('height');
-                m.controls = (this.get('customControls') === false);
-                this.add((new player(m)));
-                return true;
+            });    
+        }, this));
+        
+        // In the array of player indexes to use for each media, find the
+        // best (lowest player index) media to use
+        Y.Array.each(usableMap, Y.bind(function (val, mediaIndex) {
+            if (Y.Lang.isNumber(val) && val < playerIndex) {
+                playerIndex = val;
+                useIndex = mediaIndex;
+            } else if (val === 0 && !Y.Lang.isNumber(useIndex)) {
+                useIndex = mediaIndex;
             }
         }, this));
+        
+        // If there is a player to use, render it
+        if (Y.Lang.isNumber(useIndex)) {
+            player = playerMap[Y.Video.RENDER_ORDER[playerIndex]];
+            useMedia = media[useIndex];
+            useMedia.width = this.get('width');
+            useMedia.height = this.get('height');
+            useMedia.controls = (this.get('customControls') === false);
+            this.add((new player(useMedia)));
+            return true;
+        }
+        
+        return false;
     },
     
     _setControls : function () {
@@ -1082,14 +1091,18 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
     
     bindUI : function () {
         var player = this.getPlayer();
-            
-        player.after('playingChange', Y.bind(function (e) {
-            this._syncPlaying(e.newVal);
-        }, this));
+        if (player) {
+            player.after('playingChange', Y.bind(function (e) {
+                this._syncPlaying(e.newVal);
+            }, this));
+        }
     },
     
     syncUI : function () {
-        this._syncPlaying(this.getPlayer().get('playing'));
+        var player = this.getPlayer();
+        if (player) {
+            this._syncPlaying(player.get('playing'));
+        }
     },
     
     getPlayer : function () {

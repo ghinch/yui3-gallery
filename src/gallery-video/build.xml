@@ -16,7 +16,7 @@
 		<exec executable="mxmlc" failonerror="true">
 
 			<!-- Flash Platform -->
-            <arg line="-source-path+='../gallery-video/mxml'"/>
+            <arg line="-source-path+='../gallery-video/as'"/>
                         
             <!-- Output SWF -->
             <arg line="-output '${component.builddir}/assets/player.swf'"/>
@@ -24,10 +24,10 @@
 			<!-- Make optimize release build -->
             <arg line="-optimize='true'"/>
 			<arg line="-debug='false'"/>
-			<!--<arg line="-static-rsls='true'"/>-->
+			<arg line="-static-rsls='true'"/>
             
 			<!-- Document Class -->
-            <arg line="'./mxml/player.mxml'"/>
+            <arg line="'./as/GalleryVideoPlayer.as'"/>
 		</exec>	
     </target>
 
