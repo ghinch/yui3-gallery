@@ -1008,7 +1008,7 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
                 quicktime : Y.VideoQuicktime
             },
             usableMap = [],
-            playerIndex = 0,
+            playerIndex,
             useIndex, 
             useMedia,
             player;
@@ -1024,13 +1024,13 @@ Y.Video = Y.Base.create('video', Y.Widget, [Y.WidgetParent], {
                 usableMap[index] = (canUse === true) ? rendererIndex : false;
                 
                 return canUse;
-            });    
+            });
         }, this));
         
         // In the array of player indexes to use for each media, find the
         // best (lowest player index) media to use
         Y.Array.each(usableMap, Y.bind(function (val, mediaIndex) {
-            if (Y.Lang.isNumber(val) && val < playerIndex) {
+            if (Y.Lang.isNumber(val) && (playerIndex === undefined || val < playerIndex)) {
                 playerIndex = val;
                 useIndex = mediaIndex;
             } else if (val === 0 && !Y.Lang.isNumber(useIndex)) {

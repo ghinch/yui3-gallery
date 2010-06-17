@@ -13,7 +13,7 @@
 .yui3-video-controls .yui3-video-controls-button {
 	position: absolute;
 	height: 32px;
-	width: 32px;
+	width: 28px;
 	border-width: 0;
 	display: block;
 	padding: 0;
@@ -24,18 +24,19 @@
 .yui3-video-controls .yui3-video-controls-button-play {
 	left: 10px;
 	top: 0;
-	background-position: 7px -44px;
+	background-position: 9px -42px;
 }
+
 .yui3-video-controls .yui3-video-controls-button-pause {
     left: 10px;
     top: 0;
-    background-position: 7px -93px;
+    background-position: 8px -92px;
 }
 
 .yui3-video-controls .yui3-video-controls-button-stop {
-	left: 42px;
+	left: 38px;
 	top: 0;
-	background-position: 7px -142px;
+	background-position: 7px -141px;
 }
 
 .yui3-video .video-playing .yui3-video-controls .yui3-video-controls-button-play {
@@ -51,7 +52,7 @@
 	position: absolute;
 	display: block;
 	top: 0;
-	left: 74px;
+	left: 72px;
 }
 .yui3-video-controls .yui3-video-controls-remaining-time {
     line-height: 32px;
@@ -63,6 +64,7 @@
 .yui3-video-controls .yui3-video-controls-button-volume {
 	right: 10px;
 	top: 0;
+	background-position: 4px -191px;
 }
 .yui3-video-controls .yui3-video-controls-volume-slider {	
 	position: absolute;
@@ -105,22 +107,31 @@
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
 }
-.yui3-skin-sam .yui3-slider-x .yui3-slider-rail, .yui3-skin-sam .yui3-slider-x .yui3-slider-rail-cap-left, .yui3-skin-sam .yui3-slider-x .yui3-slider-rail-cap-right {
+.yui3-skin-sam .yui3-video-controls-total .yui3-slider-x .yui3-slider-rail, 
+.yui3-skin-sam .yui3-video-controls-total .yui3-slider-x .yui3-slider-rail-cap-left, 
+.yui3-skin-sam .yui3-video-controls-total .yui3-slider-x .yui3-slider-rail-cap-right {
     background-image: none !important;
 }
 
-.yui3-skin-sam .yui3-slider-x .yui3-slider-rail {
+.yui3-skin-sam .yui3-video-controls-total .yui3-slider-x .yui3-slider-rail {
     height: 8px !important;
     cursor: pointer;
 }
 
-.yui3-skin-sam .yui3-slider-x .yui3-slider-thumb {
+.yui3-skin-sam .yui3-video-controls-total .yui3-slider-x .yui3-slider-thumb {
     height: 8px !important;
     width: 8px !important;
     top: -4px !important;
 }
 
-.yui3-skin-sam .yui3-slider-x .yui3-slider-thumb-image {
+.yui3-skin-sam .yui3-video-controls-total .yui3-slider-x .yui3-slider-thumb-image {
     left: 0 !important;
     top: 0 !important;
+}
+
+.yui3-skin-sam .yui3-video-controls-volume-slider .yui3-slider-y .yui3-slider-thumb-image {
+    left: 4px !important;
+}
+.yui3-skin-sam .yui3-video-controls-volume-slider .yui3-slider-rail-cap-bottom {
+    height: 0 !important;
 }
