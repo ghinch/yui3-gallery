@@ -903,9 +903,9 @@ Y.VideoControls = Y.Base.create('video-controls', Y.Widget, [Y.WidgetParent, Y.W
             }
         }, this));
         
-        parent.after(prefix + 'percentLoadedChange', function (e) {            
-            loadedBar.setStyle('width', Math.ceil((e.newVal / 100) * 600) + 'px');
-        });
+        parent.after(prefix + 'percentLoadedChange', Y.bind(function (e) {            
+            loadedBar.setStyle('width', Math.ceil((e.newVal / 100) * this._progressSlider.get('max')) + 'px');
+        }, this));
         
         contentBox.one('.yui3-video-controls-button-play').after('click', function (e) {
             player.set('playing', true);
