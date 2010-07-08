@@ -21,13 +21,6 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
     },
     
     CONTENT_TEMPLATE : '<form></form>',
-	/**
-	 * @property _formNode
-	 * @type Y.Node
-	 * @protected
-	 * @description The Y.Node representing the form element
-	 */
-	_formNode : null,
 	
 	/**
 	 * @property _ioIds
@@ -232,11 +225,14 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @description Resets all form fields to their initial value 
 	 */
 	reset : function () {
-		this._formNode.reset();
-		this.each(function (f) {
-			f.resetFieldNode();
-			f.set('error', null);
+		this.each(function (field) {
+			field.resetFieldNode();
+			field.set('error', null);
 		});
+		var cb = Y.Node.getDOMNode(this.get('contentBox'));
+		if (Y.Lang.isFunction(cb.reset)) {
+		    cb.reset();
+		}
 	},
 	
 	/**
@@ -262,7 +258,7 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 				transaction = Y.io(formAction, cfg);
 				this._ioIds[transaction.id] = transaction;
 			} else {
-				this._formNode.submit();
+				this.get('contentBox').submit();
 			}
 		}
 	},
