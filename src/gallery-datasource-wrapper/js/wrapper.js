@@ -1,6 +1,8 @@
 /**
  * @module datasource-wrapper
  */
+
+var EMPTY_FN = function () {};
  
 /**
  * @class Y.DataSourceWrapper
@@ -12,9 +14,6 @@
  */
 function DSW () {
 	DSW.superclass.constructor.apply(this, arguments);
-
-    this._createSchema(this.get('source'));
-    this._attachListeners();
 }
 
 Y.mix(DSW, {
@@ -27,27 +26,16 @@ Y.mix(DSW, {
 		 */
 		source : {
 			value : null,
-			validator : function (val) {
-				return this._validateSource(val);
+			lazyAdd : true,
+			setter : function (source) {
+				this._createSchema(source);
+				return source;
 			}
 		}
 	}
 });
 
 Y.extend(DSW, Y.Base, {
-	/**
-	 * @method _validateSource
-	 * @param val {Mixed}
-	 * @private
-	 * @description Validates that a true YUI 3 DataSource is used
-	 */
-	_validateSource : function (val) {
-		if (val instanceof Y.DataSource.Local) {
-			return true;
-		}
-		return false;
-	},
-	
     /** 
      * @method _createSchema
      * @param source {Y.DataSource.Local}
@@ -58,28 +46,17 @@ Y.extend(DSW, Y.Base, {
     _createSchema : function (source) {
         var schema = source.schema;
         if (!schema) {
+			Y.log("You must provide a DataSource with a valid schema", "error", "DataSourceWrapper");
             return;
-        }   
+        }
         schema = schema.get('schema');
         this.responseSchema = { 
             fields : (schema.resultFields || []),
             metaFields : (schema.metaFields || {}),
             resultsList : (schema.resultListLocator || '') 
-        };    
+        };
     },  
-        
-    /** 
-     * @method _attachListeners
-     * @private
-     * @description Attaches event listeners
-     */
-    _attachListeners : function () {
-        this.after('sourceChange', Y.bind(function (e) {
-            var source = e.newVal;
-            this._createSchema(source);
-        }, this));
-    },  
-        
+
     /** 
      * @property responseSchema
      * @type {Object}
@@ -100,15 +77,19 @@ Y.extend(DSW, Y.Base, {
 		var ds = this.get('source');
 		req = req || '';
 		
-		if (!ds) {
-			Y.log("You must provide a valid DataSource instance", "error");
+		if (!ds || !ds.sendRequest) {
+			Y.log("You must provide a valid DataSource instance", "error", "DataSourceWrapper");
 			return;
 		}
 		
 		if (Y.Lang.isObject(cb) === false) {
-			Y.log("Please provide a valid callback", "error");
+			Y.log("Please provide a valid callback", "error", "DataSourceWrapper");
 			return;
 		}
+
+		cb.success = cb.success || EMPTY_FN;
+		cb.failure = cb.failure || EMPTY_FN;
+		cb.scope = cb.scope || this;
 		
 		ds.sendRequest({
 			request : req,
