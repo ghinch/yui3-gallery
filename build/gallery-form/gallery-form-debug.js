@@ -91,14 +91,14 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			labels = contentBox.all('label'),
 			fields = [],
 			inputMap = {
-			    text : 'TextField',
+			    text : Y.TextField,
 			    hidden : 'HiddenField',
 			    file : 'FileField',
 			    checkbox : 'CheckboxField',
 			    radio : 'RadioField',
 			    reset : 'ResetButton',
 			    submit : 'SubmitButton',
-			    button : 'Button'
+			    button : (Y.Button ? 'Button' : 'FormButton')
 			};
 		
 		children.each(function(node, index, nodeList) {
@@ -109,18 +109,18 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			if (nodeName == 'INPUT') {
 			    type = node.get('type');
 				o = {
-					type: (inputMap[type] ? inputMap[type] : 'TextField'),
+					type: (inputMap[type] ? inputMap[type] : Y.TextField),
 					name : node.get('name'),
 					value : node.get('value'),
 					checked : node.get('checked')
 				};
 
-				if (o.type == 'Button') {
+				if (o.type == inputMap.button) {
 					o.label = node.get('value');
 				}
 			} else if (nodeName == 'BUTTON') {
 				o = {
-					type : 'Button',
+					type : inputMap.button,
 					name : node.get('name'),
 					label : node.get('innerHTML')
 				};
@@ -351,8 +351,10 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @static
 	 */
 	ATTRS : {
-    	defaultChildType: {  
-    	    value: "TextField"
+    	defaultChildType : {  
+    	    valueFn : function () {
+				return Y.TextField;
+			}
     	},
     	
 		/**
@@ -1609,11 +1611,11 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 	    }
 	}
 });
-Y.Button = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
+Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
     _renderButtonNode : function () {
         var contentBox = this.get('contentBox'), bn;
         
-        bn = Y.Node.create(Y.Button.NODE_TEMPLATE);
+        bn = Y.Node.create(Y.FormButton.NODE_TEMPLATE);
         contentBox.appendChild(bn);
         this._fieldNode = bn;
     },

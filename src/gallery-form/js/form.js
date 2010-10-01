@@ -89,14 +89,14 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			labels = contentBox.all('label'),
 			fields = [],
 			inputMap = {
-			    text : 'TextField',
-			    hidden : 'HiddenField',
-			    file : 'FileField',
-			    checkbox : 'CheckboxField',
-			    radio : 'RadioField',
-			    reset : 'ResetButton',
-			    submit : 'SubmitButton',
-			    button : 'Button'
+			    text : Y.TextField,
+			    hidden : Y.HiddenField,
+			    file : Y.FileField,
+			    checkbox : Y.CheckboxField,
+			    radio : Y.RadioField,
+			    reset : Y.ResetButton,
+			    submit : Y.SubmitButton,
+			    button : (Y.Button || Y.FormButton)
 			};
 		
 		children.each(function(node, index, nodeList) {
@@ -107,18 +107,18 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			if (nodeName == 'INPUT') {
 			    type = node.get('type');
 				o = {
-					type: (inputMap[type] ? inputMap[type] : 'TextField'),
+					type: (inputMap[type] ? inputMap[type] : Y.TextField),
 					name : node.get('name'),
 					value : node.get('value'),
 					checked : node.get('checked')
 				};
 
-				if (o.type == 'Button') {
+				if (o.type == inputMap.button) {
 					o.label = node.get('value');
 				}
 			} else if (nodeName == 'BUTTON') {
 				o = {
-					type : 'Button',
+					type : inputMap.button,
 					name : node.get('name'),
 					label : node.get('innerHTML')
 				};
@@ -130,13 +130,13 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 					});
 				});
 				o = {
-					type : 'SelectField',
+					type : Y.SelectField,
 					name : node.get('name'),
 					choices : c
 				};
 			} else if (nodeName == 'TEXTAREA') {
 				o = {
-					type: 'TextareaField',
+					type: Y.TextareaField,
 					name : node.get('name'),
 					value : node.get('innerHTML')
 				};
@@ -349,8 +349,10 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @static
 	 */
 	ATTRS : {
-    	defaultChildType: {  
-    	    value: "TextField"
+    	defaultChildType : {  
+    	    valueFn : function () {
+				return Y.TextField;
+			}
     	},
     	
 		/**

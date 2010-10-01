@@ -1,8 +1,8 @@
-Y.Button = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
+Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
     _renderButtonNode : function () {
         var contentBox = this.get('contentBox'), bn;
         
-        bn = Y.Node.create(Y.Button.NODE_TEMPLATE);
+        bn = Y.Node.create(Y.FormButton.NODE_TEMPLATE);
         contentBox.appendChild(bn);
         this._fieldNode = bn;
     },
