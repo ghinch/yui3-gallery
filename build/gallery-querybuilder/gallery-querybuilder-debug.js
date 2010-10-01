@@ -96,7 +96,7 @@ function QueryBuilder(
 
 	// list of possible query operations for each data type
 
-	this.op_list      = Y.clone(operators);
+	this.op_list      = Y.clone(operators, true);
 	this.op_list.none = [];
 
 	// table rows containing the query elements
@@ -246,7 +246,10 @@ Y.extend(QueryBuilder, Y.Widget,
 	{
 		for (var i=0; i<this.row_list.length; i++)
 		{
-			this.row_list[i].plugin.destroy();
+			if (this.row_list[i].plugin)
+			{
+				this.row_list[i].plugin.destroy();
+			}
 		}
 
 		this.row_list = null;
@@ -280,7 +283,7 @@ Y.extend(QueryBuilder, Y.Widget,
 
 		if (operators)
 		{
-			this.op_list      = Y.clone(operators);
+			this.op_list      = Y.clone(operators, true);
 			this.op_list.none = [];
 		}
 
@@ -648,7 +651,7 @@ Y.extend(QueryBuilder, Y.Widget,
 	{
 		// This must use a select tag!
 
-		var markup = '<select name="{n}" class="{c}" />';
+		var markup = '<select name="{n}" class="formmgr-field {c}" />';
 
 		return Y.Lang.substitute(markup,
 		{
@@ -794,7 +797,7 @@ QueryBuilder.String.prototype =
 	{
 		// This must use a select tag!
 
-		var markup = '<select name="{n}" class="{c}" />';
+		var markup = '<select name="{n}" class="formmgr-field {c}" />';
 
 		return Y.Lang.substitute(markup,
 		{
@@ -809,7 +812,7 @@ QueryBuilder.String.prototype =
 	{
 		// This must use an input tag!
 
-		var markup = '<input type="text" name="{n}" class="yiv-required {c}"/>';
+		var markup = '<input type="text" name="{n}" class="yiv-required formmgr-field {c}"/>';
 
 		return Y.Lang.substitute(markup,
 		{
@@ -917,7 +920,7 @@ QueryBuilder.Select.prototype =
 	{
 		// This must use a select tag!
 
-		var markup = '<select name="{n}" class="{c}" />';
+		var markup = '<select name="{n}" class="formmgr-field {c}" />';
 
 		return Y.Lang.substitute(markup,
 		{
@@ -937,4 +940,4 @@ QueryBuilder.plugin_mapping =
 };
 
 
-}, 'gallery-2010.06.02-18-59' ,{optional:['gallery-formmgr','gallery-scrollintoview'], requires:['widget','substitute']});
+}, 'gallery-2010.09.15-18-40' ,{requires:['widget','substitute'], optional:['gallery-formmgr','gallery-scrollintoview']});
