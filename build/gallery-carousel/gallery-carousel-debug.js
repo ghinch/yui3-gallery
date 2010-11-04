@@ -1250,4 +1250,4 @@ Y.Carousel = Y.extend(Carousel, Y.Widget, {
 });
 
 
-}, 'gallery-2010.10.06-18-55' ,{requires:['widget']});
+}, 'gallery-2010.10.13-22-23' ,{requires:['widget']});
