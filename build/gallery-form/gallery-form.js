@@ -92,13 +92,13 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			fields = [],
 			inputMap = {
 			    text : Y.TextField,
-			    hidden : 'HiddenField',
-			    file : 'FileField',
-			    checkbox : 'CheckboxField',
-			    radio : 'RadioField',
-			    reset : 'ResetButton',
-			    submit : 'SubmitButton',
-			    button : (Y.Button ? 'Button' : 'FormButton')
+			    hidden : Y.HiddenField,
+			    file : Y.FileField,
+			    checkbox : Y.CheckboxField,
+			    radio : Y.RadioField,
+			    reset : Y.ResetButton,
+			    submit : Y.SubmitButton,
+			    button : (Y.Button || Y.FormButton)
 			};
 		
 		children.each(function(node, index, nodeList) {
@@ -132,13 +132,13 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 					});
 				});
 				o = {
-					type : 'SelectField',
+					type : Y.SelectField,
 					name : node.get('name'),
 					choices : c
 				};
 			} else if (nodeName == 'TEXTAREA') {
 				o = {
-					type: 'TextareaField',
+					type: Y.TextareaField,
 					name : node.get('name'),
 					value : node.get('innerHTML')
 				};
@@ -601,7 +601,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 */
 	_renderLabelNode : function () {
 		var contentBox = this.get('contentBox'),
-			labelNode = contentBox.query('label');
+			labelNode = contentBox.one('label');
 		
 		if (!labelNode || labelNode.get('for') != this.get('id')) {
 			labelNode = Y.Node.create(Y.FormField.LABEL_TEMPLATE);
@@ -618,7 +618,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 */
 	_renderFieldNode : function () {
 		var contentBox = this.get('contentBox'),
-			field = contentBox.query('#' + this.get('id'));
+			field = contentBox.one('#' + this.get('id'));
 				
 		if (!field) {
 			field = Y.Node.create(Y.FormField.INPUT_TEMPLATE);
@@ -1315,7 +1315,7 @@ Y.HiddenField = Y.Base.create('hidden-field', Y.FormField, [Y.WidgetChild], {
 Y.TextareaField = Y.Base.create('textarea-field', Y.FormField, [Y.WidgetChild], {
     _renderFieldNode : function () {
         var contentBox = this.get('contentBox'),
-            field = contentBox.query('#' + this.get('id'));
+            field = contentBox.one('#' + this.get('id'));
                 
         if (!field) {
             field = Y.Node.create(Y.TextareaField.NODE_TEMPLATE);
@@ -1472,7 +1472,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 	 */
     _renderFieldNode : function () {
         var contentBox = this.get('contentBox'),
-            field = contentBox.query('#' + this.get('id'));
+            field = contentBox.one('#' + this.get('id'));
                 
         if (!field) {
             field = Y.Node.create(Y.SelectField.NODE_TEMPLATE);
@@ -1684,7 +1684,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild], {
 	_renderFieldNode : function () {
 		var contentBox = this.get('contentBox'),
-			field = contentBox.query('#' + this.get('id'));
+			field = contentBox.one('#' + this.get('id'));
 				
 		if (!field) {
 			field = Y.Node.create(Y.FileField.FILE_INPUT_TEMPLATE);
@@ -1718,4 +1718,4 @@ Y.SubmitButton = Y.Base.create('submit-button', Y.FormField, [Y.WidgetChild], {
  });
 
 
-}, '@VERSION@' ,{requires:['node', 'widget-base', 'widget-htmlparser', 'io-form', 'widget-parent', 'widget-child', 'base', 'substitute']});
+}, '@VERSION@' ,{requires:['node', 'widget-base', 'widget-htmlparser', 'io-form', 'widget-parent', 'widget-child', 'base-build', 'substitute']});

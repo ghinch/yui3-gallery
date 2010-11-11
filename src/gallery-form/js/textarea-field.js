@@ -8,7 +8,7 @@
 Y.TextareaField = Y.Base.create('textarea-field', Y.FormField, [Y.WidgetChild], {
     _renderFieldNode : function () {
         var contentBox = this.get('contentBox'),
-            field = contentBox.query('#' + this.get('id'));
+            field = contentBox.one('#' + this.get('id'));
                 
         if (!field) {
             field = Y.Node.create(Y.TextareaField.NODE_TEMPLATE);

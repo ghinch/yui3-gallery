@@ -13,7 +13,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 	 */
     _renderFieldNode : function () {
         var contentBox = this.get('contentBox'),
-            field = contentBox.query('#' + this.get('id'));
+            field = contentBox.one('#' + this.get('id'));
                 
         if (!field) {
             field = Y.Node.create(Y.SelectField.NODE_TEMPLATE);

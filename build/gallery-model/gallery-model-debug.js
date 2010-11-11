@@ -180,7 +180,7 @@ Y.namespace('Plugin').DataSourceModelMapper = Y.Base.create('model-mapper', Y.Pl
 		} else {
 			e.response.results = [];
 		}
-		Y.DataSource.Local.issueCallback(e, this);
+		Y.DataSource.Local.issueCallback(e, this.get('host'));
 		return new Y.Do.Halt("ModelManager plugin halted defResponseFn");
 	},
 

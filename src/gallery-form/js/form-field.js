@@ -111,7 +111,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 */
 	_renderLabelNode : function () {
 		var contentBox = this.get('contentBox'),
-			labelNode = contentBox.query('label');
+			labelNode = contentBox.one('label');
 		
 		if (!labelNode || labelNode.get('for') != this.get('id')) {
 			labelNode = Y.Node.create(Y.FormField.LABEL_TEMPLATE);
@@ -128,7 +128,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	 */
 	_renderFieldNode : function () {
 		var contentBox = this.get('contentBox'),
-			field = contentBox.query('#' + this.get('id'));
+			field = contentBox.one('#' + this.get('id'));
 				
 		if (!field) {
 			field = Y.Node.create(Y.FormField.INPUT_TEMPLATE);
