@@ -132,7 +132,9 @@ Y.ACTypeAhead = Y.Base.create('ac-typeahead', Y.Plugin.Base, [], {
         this._taContainer.remove();
         this.get(HOST).get(INPUT_NODE).setStyles({
             position: '',
-            zIndex: ''
+            zIndex: '',
+            backgroundColor: ''
+
         });
         this._keyDownHandle.detach();
         this._tabKeyDownHandle.detach();
