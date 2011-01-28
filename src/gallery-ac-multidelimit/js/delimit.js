@@ -4,9 +4,7 @@ var HOST            = 'host',
     VALUE_CHANGE    = 'valueChange',
     PARSE_VALUE     = '_parseValue',
     UPDATE_VALUE    = '_updateValue',
-    ON_INPUT_BLUR   = '_onInputBlur',
-
-    MULTI_WORD_REGEXP   = /\w+.*\s+.*\w+/;
+    ON_INPUT_BLUR   = '_onInputBlur';
 
 Y.ACMultiQueryDelim = Y.Base.create('ac-multidelim', Y.Plugin.Base, [], {
     _beforeParseValue : function (value) {
@@ -146,10 +144,6 @@ Y.ACMultiQueryDelim = Y.Base.create('ac-multidelim', Y.Plugin.Base, [], {
         var val = e.newVal,
             host = this.get(HOST),
             completed;
-        
-        if (!e.noQuotes && MULTI_WORD_REGEXP.test(val)) {
-            val = '"' + val + '"';
-        }
         
         completed = this.getCompletedStr(e.prevVal, val, host.get(QUERY_DELIMITER));
             
