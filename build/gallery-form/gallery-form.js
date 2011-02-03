@@ -187,7 +187,7 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		var isValid = true;
 		
 		this.each(function (f) {
-			f.set('error',null);
+			f.set('error',null); // XXX Isn't this redundant? (already run in validateField)
 			if (f.validateField() === false) {
 				isValid = false;
 			}
@@ -231,6 +231,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			field.resetFieldNode();
 			field.set('error', null);
 		});
+                // XXX shouldn't this be *before* the above loop?
+                // apparently it is a regression introduced by commit 5eeb8316
 		var cb = Y.Node.getDOMNode(this.get('contentBox'));
 		if (Y.Lang.isFunction(cb.reset)) {
 		    cb.reset();
@@ -257,7 +259,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 					}
 				};
 	            
-				transaction = Y.io(formAction, cfg);
+				var io = this.get("io");
+				transaction = io(formAction, cfg);
 				this._ioIds[transaction.id] = transaction;
 			} else {
 				this.get('contentBox').submit();
@@ -329,6 +332,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		Y.on('io:failure', Y.bind(this._handleIOEvent, this, 'failure'));
 		
 		this.each(Y.bind(function(f) {
+			// This should probably be performed also when children
+			// are with Form.add() after the form is rendered.
             if (f.name =='submit-button') {
             	f.on('click', Y.bind(this.submit, this));
             } else if (f.name == 'reset-button') {
@@ -447,7 +452,18 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		submitViaIO : {
 			value : true,
 			validator : Y.Lang.isBoolean
-		}
+		},
+
+		/**
+		 * @attribute io
+		 * @type Function
+		 * @description The factory for creating IO transactions, used by tests.
+		 * @default Y.io
+		 */
+                io: {
+                        value: Y.io
+                }
+
 	},
 
 	/**
@@ -677,7 +693,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	},
 	
 	_syncDisabled : function (e) {
-	    var dis = this.get('disabled');
+	    var dis = e ? e.newVal : this.get('disabled');
 	    if (dis === true) {
 	        this._fieldNode.setAttribute('disabled', 'disabled');
 	    } else {
@@ -728,7 +744,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	},
 
 	_enableInlineValidation : function () {
-		this.after('valueChange', Y.bind(this.validateField, this));
+		this.after('valueChange', this.validateField, this);
 	},
 
 	_disableInlineValidation : function () {
@@ -799,7 +815,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	bindUI : function () {
 		this._fieldNode.on('change', Y.bind(function (e) {
 			this.set('value', this._fieldNode.get('value'), {src : 'ui'});
-			this.fire('change', e);
+			this.fire('change', e); // XXX Is this necessary? Should be done already by Widget
 		}, this));
 		
 		this.on('valueChange', Y.bind(function (e) {
@@ -810,7 +826,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 
 		this._fieldNode.on('blur', Y.bind(function (e) {
 			this.set('value', this._fieldNode.get('value'), {src : 'ui'});
-			this.fire('blur', e);
+			this.fire('blur', e); // XXX Is this necessary? Should be done already by Widget
 		}, this));
 
 		this._fieldNode.on('focus', Y.bind(function(e) {
@@ -834,7 +850,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 		}, this));
 		
 		this.on('disabledChange', Y.bind(function (e) {
-		    this._syncDisabled();
+		    this._syncDisabled(e);
 		}, this));
 	},
 
@@ -963,6 +979,8 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 		 * @default false
 		 * @description Set to true to disable the field.
 		 */
+		// XXX: This attribute could be dropped as it's present in Widget
+		// too (albeit without validator)
 		disabled : {
 		    value : false,
 		    validator : Y.Lang.isBoolean
@@ -1418,7 +1436,7 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
             if (choice) {
                 this._fieldNode.some(function (node, index, list) {
                     if (node.get('value') == choice) {
-                        node.setAttribute('checked', true);
+                        node.set('checked', true);
                         return true;
                     }
                 }, this);
@@ -1427,7 +1445,8 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
 
     clear : function () {
         this._fieldNode.each(function (node, index, list) {
-            node.setAttribute('checked', false);
+debugger;
+            node.set('checked', false);
         }, this);
         
         this.set('value', '');
@@ -1632,7 +1651,8 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 	_syncFieldNode : function () {
 		this._fieldNode.setAttrs({
             innerHTML : this.get('label'),
-            id : this.get('id')
+            id : this.get('id') // XXX this potentially duplicates the id of
+                                // the boundingBox, if doesn't have one already
         });
         
         this.get('contentBox').addClass('first-child');
