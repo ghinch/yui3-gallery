@@ -80,7 +80,7 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
             if (choice) {
                 this._fieldNode.some(function (node, index, list) {
                     if (node.get('value') == choice) {
-                        node.setAttribute('checked', true);
+                        node.set('checked', true);
                         return true;
                     }
                 }, this);
@@ -89,7 +89,7 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
 
     clear : function () {
         this._fieldNode.each(function (node, index, list) {
-            node.setAttribute('checked', false);
+            node.set('checked', false);
         }, this);
         
         this.set('value', '');
