@@ -185,7 +185,7 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		var isValid = true;
 		
 		this.each(function (f) {
-			f.set('error',null);
+			f.set('error',null); // XXX Isn't this redundant? (already run in validateField)
 			if (f.validateField() === false) {
 				isValid = false;
 			}
@@ -229,6 +229,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 			field.resetFieldNode();
 			field.set('error', null);
 		});
+                // XXX shouldn't this be *before* the above loop?
+                // apparently it is a regression introduced by commit 5eeb8316
 		var cb = Y.Node.getDOMNode(this.get('contentBox'));
 		if (Y.Lang.isFunction(cb.reset)) {
 		    cb.reset();
@@ -255,7 +257,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 					}
 				};
 	            
-				transaction = Y.io(formAction, cfg);
+				var io = this.get("io");
+				transaction = io(formAction, cfg);
 				this._ioIds[transaction.id] = transaction;
 			} else {
 				this.get('contentBox').submit();
@@ -327,6 +330,8 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		Y.on('io:failure', Y.bind(this._handleIOEvent, this, 'failure'));
 		
 		this.each(Y.bind(function(f) {
+			// This should probably be performed also when children
+			// are with Form.add() after the form is rendered.
             if (f.name =='submit-button') {
             	f.on('click', Y.bind(this.submit, this));
             } else if (f.name == 'reset-button') {
@@ -445,7 +450,18 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		submitViaIO : {
 			value : true,
 			validator : Y.Lang.isBoolean
-		}
+		},
+
+		/**
+		 * @attribute io
+		 * @type Function
+		 * @description The factory for creating IO transactions, used by tests.
+		 * @default Y.io
+		 */
+                io: {
+                        value: Y.io
+                }
+
 	},
 
 	/**
