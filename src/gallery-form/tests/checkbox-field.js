@@ -8,9 +8,10 @@ suite.add(new Y.Test.Case({
     name: "CheckboxFieldTest",
 
     setUp: function() {
-        this.scaffolding = Y.one("#scaffolding");
-        this.scaffolding.setContent("<div id='checkbox'></div>");
-        this.checkbox = new Y.CheckboxField({boundingBox: "#checkbox"});
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.checkbox = new Y.CheckboxField({boundingBox: boundingBox});
         this.checkbox.render();
     },
 

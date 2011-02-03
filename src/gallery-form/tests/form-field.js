@@ -8,9 +8,10 @@ suite.add(new Y.Test.Case({
     name: "FormFieldTest",
 
     setUp: function() {
-        this.scaffolding = Y.one("#scaffolding");
-        this.scaffolding.setContent("<div id='field'></div>");
-        this.field = new Y.FormField({boundingBox: "#field"});
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.field = new Y.FormField({boundingBox: boundingBox});
         this.field.render();
     },
 

@@ -8,9 +8,10 @@ suite.add(new Y.Test.Case({
     name: "FormButtonTest",
 
     setUp: function() {
-        this.scaffolding = Y.one("#scaffolding");
-        this.scaffolding.setContent("<div id='button'></div>");
-        this.button = new Y.FormButton({boundingBox: "#button"});
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.button = new Y.FormButton({boundingBox: boundingBox});
         this.button.render();
     },
 

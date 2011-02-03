@@ -8,10 +8,11 @@ suite.add(new Y.Test.Case({
     name: "FormTest",
 
     setUp: function() {
-        this.scaffolding = Y.one("#scaffolding");
-        this.scaffolding.setContent("<div id='form'></div>");
-        this.form = new Y.Form({boundingBox: "#form"});
-        this.form.render();
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.form = new Y.Form({boundingBox: boundingBox});
+        this.form.render(this.scaffolding);
     },
  
     // By default the content box is <form> node whose method is set to 'post'.
@@ -104,7 +105,8 @@ suite.add(new Y.Test.Case({
                                  "    </input>",
                                  "  </form>",
                                  "</div>"].join(""));
-        this.scaffolding.setContent(box);
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(box);
         var form = new Y.Form({boundingBox: box,
                                contentBox: box.one("form")});
         form.render();

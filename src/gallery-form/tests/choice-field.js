@@ -8,9 +8,10 @@ suite.add(new Y.Test.Case({
     name: "ChoiceFieldTest",
 
     setUp: function() {
-        this.scaffolding = Y.one("#scaffolding");
-        this.scaffolding.setContent("<div id='choice'></div>");
-        this.choice = new Y.ChoiceField({boundingBox: "#choice"});
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.choice = new Y.ChoiceField({boundingBox: boundingBox});
     },
 
     // The ChoiceField widget renders a radio input element for each choice.

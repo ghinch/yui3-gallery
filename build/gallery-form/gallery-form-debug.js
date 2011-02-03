@@ -694,7 +694,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	},
 	
 	_syncDisabled : function (e) {
-	    var dis = e ? e.newVal : this.get('disabled');
+	    var dis = this.get('disabled');
 	    if (dis === true) {
 	        this._fieldNode.setAttribute('disabled', 'disabled');
 	    } else {
@@ -850,8 +850,8 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 			}
 		}, this));
 		
-		this.on('disabledChange', Y.bind(function (e) {
-		    this._syncDisabled(e);
+		this.after('disabledChange', Y.bind(function (e) {
+		    this._syncDisabled();
 		}, this));
 	},
 
