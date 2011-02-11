@@ -187,7 +187,6 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 		var isValid = true;
 		
 		this.each(function (f) {
-			f.set('error',null); // XXX Isn't this redundant? (already run in validateField)
 			if (f.validateField() === false) {
 				isValid = false;
 			}
