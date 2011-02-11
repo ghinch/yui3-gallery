@@ -224,16 +224,14 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
 	 * @description Resets all form fields to their initial value 
 	 */
 	reset : function () {
-		this.each(function (field) {
-			field.resetFieldNode();
-			field.set('error', null);
-		});
-                // XXX shouldn't this be *before* the above loop?
-                // apparently it is a regression introduced by commit 5eeb8316
 		var cb = Y.Node.getDOMNode(this.get('contentBox'));
 		if (Y.Lang.isFunction(cb.reset)) {
 		    cb.reset();
 		}
+		this.each(function (field) {
+			field.resetFieldNode();
+			field.set('error', null);
+		});
 	},
 	
 	/**

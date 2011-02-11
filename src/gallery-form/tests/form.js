@@ -51,11 +51,14 @@ suite.add(new Y.Test.Case({
 
     // The Form.reset method resets the fields to their initial values.
     testReset: function() {
-        var field = new Y.TextField({name: "foo", value: "bar"});
+        var contentBox = this.form.get("contentBox"),
+            field = new Y.TextField({name: "foo", value: "bar"});
+
         this.form.add(field);
         field.set("value", "egg");
         this.form.reset();
-        Y.Assert.areEqual("bar", field.get("value"));
+
+        Y.Assert.areEqual("bar", contentBox.one("input").get("value"));
         Y.Assert.areEqual(null, field.get("error"));
     },
 
