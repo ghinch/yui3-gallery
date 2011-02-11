@@ -31,7 +31,7 @@ suite.add(new Y.Test.Case({
         input.set("checked", false);
         input.simulate("change");
         Y.Assert.isFalse(this.checkbox.get("checked"));
-    },
+    }
 }));
 
 Y.Test.Runner.add(suite);
