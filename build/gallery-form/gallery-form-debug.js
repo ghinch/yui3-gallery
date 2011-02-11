@@ -813,7 +813,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 	bindUI : function () {
 		this._fieldNode.on('change', Y.bind(function (e) {
 			this.set('value', this._fieldNode.get('value'), {src : 'ui'});
-			this.fire('change', e); // XXX Is this necessary? Should be done already by Widget
 		}, this));
 		
 		this.on('valueChange', Y.bind(function (e) {
@@ -824,7 +823,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 
 		this._fieldNode.on('blur', Y.bind(function (e) {
 			this.set('value', this._fieldNode.get('value'), {src : 'ui'});
-			this.fire('blur', e); // XXX Is this necessary? Should be done already by Widget
 		}, this));
 
 		this._fieldNode.on('focus', Y.bind(function(e) {
@@ -969,19 +967,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
 		validateInline : {
 			value : false,
 			validator : Y.Lang.isBoolean
-		},
-		
-		/**
-		 * @attribute disabled
-		 * @type Boolean
-		 * @default false
-		 * @description Set to true to disable the field.
-		 */
-		// XXX: This attribute could be dropped as it's present in Widget
-		// too (albeit without validator)
-		disabled : {
-		    value : false,
-		    validator : Y.Lang.isBoolean
 		}
 	},
 
