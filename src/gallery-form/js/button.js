@@ -12,8 +12,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 	_syncFieldNode : function () {
 		this._fieldNode.setAttrs({
             innerHTML : this.get('label'),
-            id : this.get('id') // XXX this potentially duplicates the id of
-                                // the boundingBox, if doesn't have one already
+            id : this.get('id') + Y.FormField.FIELD_ID_SUFFIX
         });
         
         this.get('contentBox').addClass('first-child');

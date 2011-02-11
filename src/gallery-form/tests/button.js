@@ -47,7 +47,9 @@ suite.add(new Y.Test.Case({
         this.button.set("label", "Press me");
         this.button.syncUI();
         var contentBox = this.button.get("contentBox");
-        Y.Assert.areEqual("Press me", contentBox.one("button").get("text"));
+        var buttonNode = contentBox.one("button");
+        Y.Assert.areEqual("Press me", buttonNode.get("text"));
+        Y.Assert.areEqual(this.button.get("id") + "-field", buttonNode.get("id"));
     }
 }));
 
