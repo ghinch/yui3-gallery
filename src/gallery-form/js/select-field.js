@@ -10,6 +10,13 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
     FIELD_TEMPLATE : '<select></select>',
 
     /**
+     * @property SelectField.DEFAULT_OPTION_TEXT
+     * @type String
+     * @description The display title of the default choice in the select box
+     */
+    DEFAULT_OPTION_TEXT : 'Choose one',	
+
+    /**
 	 * @method _renderFieldNode
 	 * @protected
 	 * @description Draws the select node into the contentBox
@@ -51,6 +58,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
         Y.SelectField.superclass.constructor.superclass._syncFieldNode.apply(this, arguments);
 
         this._fieldNode.setAttrs({
+            size : this.get('size'),
             multiple: (this.get('multi') === true ? 'multiple': '')
         });
     },
@@ -69,7 +77,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 
         if (useDefaultOption === true) {
             choices.unshift({
-                label: Y.SelectField.DEFAULT_OPTION_TEXT,
+                label : this.DEFAULT_OPTION_TEXT,
                 value: ''
             });
         }
@@ -118,13 +126,6 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 	 */
     OPTION_TEMPLATE: '<option></option>',
 
-    /**
-	 * @property SelectField.DEFAULT_OPTION_TEXT
-	 * @type String
-	 * @description The display title of the default choice in the select box
-	 */
-    DEFAULT_OPTION_TEXT: 'Choose one',
-
     ATTRS: {
         /**
 	     * @attribute useDefaultOption
@@ -136,6 +137,17 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
         useDefaultOption: {
             validator: Y.Lang.isBoolean,
             value: true
+        },
+
+        /**
+         * @attribute size
+         * @type String
+         * @default 0
+         * @description Value of 'size' attribute of the select element.
+         */
+        size : {
+            validator : Y.Lang.isString,
+            value : '0'
         }
     }
 });

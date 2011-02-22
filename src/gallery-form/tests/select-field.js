@@ -21,11 +21,13 @@ suite.add(new Y.Test.Case({
             field,
             options;
         this.select.set("name", "some-field");
+        this.select.set("size", "2");
         this.select.set("choices", [{label: "Foo", value: "foo"},
                                     {label: "Bar", value: "bar"}]);
         this.select.render();
         field = contentBox.one("select");
         Y.Assert.areEqual("some-field", field.get("name"));
+        Y.Assert.areEqual("2", field.get("size"));
         options = contentBox.all("option");
         Y.Assert.areEqual("Choose one", options.item(0).get("text"));        
         Y.Assert.areEqual("", options.item(0).get("value"));        
