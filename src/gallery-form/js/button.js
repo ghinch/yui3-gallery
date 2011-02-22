@@ -1,11 +1,6 @@
 Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
-    _renderButtonNode : function () {
-        var contentBox = this.get('contentBox'), bn;
-        
-        bn = Y.Node.create(Y.FormButton.NODE_TEMPLATE);
-        contentBox.appendChild(bn);
-        this._fieldNode = bn;
-    },
+
+    FIELD_TEMPLATE : '<button></button>',
 
     _syncLabelNode: function () {},
 
@@ -29,7 +24,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
     },
 
     renderUI : function () {
-        this._renderButtonNode();
+        this._renderFieldNode();
     },
 
     bindUI : function () {
@@ -60,7 +55,5 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
                 return val;
             }
         }
-    },
-
-    NODE_TEMPLATE : '<button></button>'
+    }
 });

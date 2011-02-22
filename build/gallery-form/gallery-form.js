@@ -523,6 +523,14 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     toString: function() {
         return this.name;
     },
+
+    /**
+     * @property FormField.FIELD_TEMPLATE
+     * @type String
+     * @description Template used to render the field node
+     */
+    FIELD_TEMPLATE : '<input></input>',
+
     /**
      * @property _labelNode
      * @protected
@@ -643,7 +651,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
         field = contentBox.one('#' + this.get('id'));
 
         if (!field) {
-            field = Y.Node.create(Y.FormField.INPUT_TEMPLATE);
+            field = Y.Node.create(this.FIELD_TEMPLATE);
             contentBox.appendChild(field);
         }
 
@@ -1172,13 +1180,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     INVALID_SPECIAL_CHARS: "Please use only letters and numbers",
 
     /**
-     * @property FormField.INPUT_TEMPLATE
-     * @type String
-     * @description Template used to draw an input node
-     */
-    INPUT_TEMPLATE: '<input />',
-
-    /**
      * @property FormField.LABEL_TEMPLATE
      * @type String
      * @description Template used to draw a label node
@@ -1338,31 +1339,9 @@ Y.HiddenField = Y.Base.create('hidden-field', Y.FormField, [Y.WidgetChild], {
  * @description A hidden field node
  */
 Y.TextareaField = Y.Base.create('textarea-field', Y.FormField, [Y.WidgetChild], {
-    _renderFieldNode : function () {
-        var contentBox = this.get('contentBox'),
-            field = contentBox.one('#' + this.get('id'));
-                
-        if (!field) {
-            field = Y.Node.create(Y.TextareaField.NODE_TEMPLATE);
-            field.setAttrs({
-                name : this.get('name'), 
-                innerHTML : this.get('value')
-            });
-            contentBox.appendChild(field);
-        }
 
-		field.setAttribute('tabindex', Y.FormField.tabIndex);
-		Y.FormField.tabIndex++;
-        
-        this._fieldNode = field;
-    }
-}, {
-    /** 
-     * @property TextareaField.NODE_TEMPLATE
-     * @type String
-     * @description Template used to draw a textarea node
-     */
-    NODE_TEMPLATE : '<textarea></textarea>'
+    FIELD_TEMPLATE : '<textarea></textarea>'
+
 });
 /**
  * @class ChoiceField
@@ -1513,22 +1492,16 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
  * @description A select field node
  */
 Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.WidgetChild], {
+
+    FIELD_TEMPLATE : '<select></select>',
+
     /**
 	 * @method _renderFieldNode
 	 * @protected
 	 * @description Draws the select node into the contentBox
 	 */
     _renderFieldNode: function() {
-        var contentBox = this.get('contentBox'),
-        field = contentBox.one('#' + this.get('id'));
-
-        if (!field) {
-            field = Y.Node.create(Y.SelectField.NODE_TEMPLATE);
-            contentBox.appendChild(field);
-        }
-
-        this._fieldNode = field;
-
+        Y.SelectField.superclass.constructor.superclass._renderFieldNode.apply(this, arguments);
         this._renderOptionNodes();
     },
 
@@ -1625,13 +1598,6 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 },
 {
     /**
-     * @property SelectField.NODE_TEMPLATE
-     * @type String
-     * @description Template used to draw a select node
-     */
-    NODE_TEMPLATE: '<select></select>',
-
-    /**
 	 * @property SelectField.OPTION_TEMPLATE
 	 * @type String
 	 * @description Template used to draw an option node
@@ -1660,13 +1626,8 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
     }
 });
 Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
-    _renderButtonNode : function () {
-        var contentBox = this.get('contentBox'), bn;
-        
-        bn = Y.Node.create(Y.FormButton.NODE_TEMPLATE);
-        contentBox.appendChild(bn);
-        this._fieldNode = bn;
-    },
+
+    FIELD_TEMPLATE : '<button></button>',
 
     _syncLabelNode: function () {},
 
@@ -1690,7 +1651,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
     },
 
     renderUI : function () {
-        this._renderButtonNode();
+        this._renderFieldNode();
     },
 
     bindUI : function () {
@@ -1721,9 +1682,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
                 return val;
             }
         }
-    },
-
-    NODE_TEMPLATE : '<button></button>'
+    }
 });
 /**
  * @class FileField
@@ -1733,21 +1692,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
  * @description A file field node
  */
 
-Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild], {
-    _renderFieldNode : function () {
-        var contentBox = this.get('contentBox'),
-            field = contentBox.one('#' + this.get('id'));
-                        
-        if (!field) {
-            field = Y.Node.create(Y.FileField.FILE_INPUT_TEMPLATE);
-            contentBox.appendChild(field);
-        }
-
-        this._fieldNode = field;
-    }
-}, {
-    FILE_INPUT_TEMPLATE : '<input type="file" />'
-});
+Y.FileField = Y.Base.create('file-field', Y.FormField, [Y.WidgetChild]);
 /**
  * @class SubmitButton
  * @extends FormField

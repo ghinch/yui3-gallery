@@ -10,6 +10,14 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     toString: function() {
         return this.name;
     },
+
+    /**
+     * @property FormField.FIELD_TEMPLATE
+     * @type String
+     * @description Template used to render the field node
+     */
+    FIELD_TEMPLATE : '<input></input>',
+
     /**
      * @property _labelNode
      * @protected
@@ -131,7 +139,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
         field = contentBox.one('#' + this.get('id'));
 
         if (!field) {
-            field = Y.Node.create(Y.FormField.INPUT_TEMPLATE);
+            field = Y.Node.create(this.FIELD_TEMPLATE);
             contentBox.appendChild(field);
         }
 
@@ -658,13 +666,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Message to display when invalid characters are entered
      */
     INVALID_SPECIAL_CHARS: "Please use only letters and numbers",
-
-    /**
-     * @property FormField.INPUT_TEMPLATE
-     * @type String
-     * @description Template used to draw an input node
-     */
-    INPUT_TEMPLATE: '<input />',
 
     /**
      * @property FormField.LABEL_TEMPLATE

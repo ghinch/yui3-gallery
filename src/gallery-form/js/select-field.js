@@ -6,22 +6,16 @@
  * @description A select field node
  */
 Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.WidgetChild], {
+
+    FIELD_TEMPLATE : '<select></select>',
+
     /**
 	 * @method _renderFieldNode
 	 * @protected
 	 * @description Draws the select node into the contentBox
 	 */
     _renderFieldNode: function() {
-        var contentBox = this.get('contentBox'),
-        field = contentBox.one('#' + this.get('id'));
-
-        if (!field) {
-            field = Y.Node.create(Y.SelectField.NODE_TEMPLATE);
-            contentBox.appendChild(field);
-        }
-
-        this._fieldNode = field;
-
+        Y.SelectField.superclass.constructor.superclass._renderFieldNode.apply(this, arguments);
         this._renderOptionNodes();
     },
 
@@ -117,13 +111,6 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
     }
 },
 {
-    /**
-     * @property SelectField.NODE_TEMPLATE
-     * @type String
-     * @description Template used to draw a select node
-     */
-    NODE_TEMPLATE: '<select></select>',
-
     /**
 	 * @property SelectField.OPTION_TEMPLATE
 	 * @type String
