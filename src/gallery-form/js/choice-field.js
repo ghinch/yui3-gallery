@@ -7,6 +7,9 @@
  * selection of choices
  */
 Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.WidgetChild], {
+
+    LABEL_TEMPLATE: '<span></span>',
+
     /**
      * @method _validateChoices
      * @protected
@@ -43,16 +46,6 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
         }
 
         return true;
-    },
-
-    _renderLabelNode: function() {
-        var contentBox = this.get('contentBox'),
-        titleNode = Y.Node.create('<span></span>');
-
-        titleNode.set('innerHTML', this.get('label'));
-        contentBox.appendChild(titleNode);
-
-        this._labelNode = titleNode;
     },
 
     _renderFieldNode: function() {

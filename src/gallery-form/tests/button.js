@@ -19,6 +19,7 @@ suite.add(new Y.Test.Case({
     testRenderUI: function() {
         var contentBox = this.button.get("contentBox");
         Y.Assert.isNotNull(contentBox.one("button"));
+        Y.Assert.isNull(contentBox.one("label"));
     },
 
     // The 'onclick' attribute can be set to an event handler for the

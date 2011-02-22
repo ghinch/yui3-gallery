@@ -1,8 +1,7 @@
 Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 
     FIELD_TEMPLATE : '<button></button>',
-
-    _syncLabelNode: function () {},
+    LABEL_TEMPLATE: '',
 
     _syncFieldNode : function () {
         this._fieldNode.setAttrs({
@@ -21,10 +20,6 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
         var oc = this.get('onclick');
         Y.Event.purgeElement(this._fieldNode, true, 'click');
         Y.on('click', Y.bind(oc.fn, oc.scope, true), this._fieldNode);
-    },
-
-    renderUI : function () {
-        this._renderFieldNode();
     },
 
     bindUI : function () {
