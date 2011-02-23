@@ -119,6 +119,64 @@ suite.add(new Y.Test.Case({
     }
 }));
 
+
+var CustomFormField = function(config) {
+    CustomFormField.superclass.constructor.apply(this, arguments);
+};
+
+CustomFormField.NAME = "custom-form-field";
+
+Y.extend(CustomFormField, Y.FormField, {
+
+    CONTENT_TEMPLATE: ["<div>",
+                       "  <span class='label'></span>",
+                       "  <div>",
+                       "    <div>",
+                       "      <span class='field'></span>",
+                       "    </div>",
+                       "    <div>",
+                       "      <span class='error'></span>",
+                       "    </div>",
+                       "  </div>",
+                       "</div>"].join("")
+});
+
+
+suite.add(new Y.Test.Case({
+
+    name: "CustomFormFieldTest",
+
+    setUp: function() {
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.field = new CustomFormField({boundingBox: boundingBox,
+                                          name: "some-field",
+                                          label: "Some field",
+                                          required: true,
+                                          requiredLabel: "(Required)",
+                                          value: "foo"});
+        this.field.render();
+    },
+
+    // If placeholders nodes are found in the content box markup, they
+    // are replaced with the relevant form field nodes.
+    testRenderUI: function() {
+        var contentBox = this.field.get("contentBox"),
+            contentBoxChildren = contentBox.get("children"),
+            label = contentBoxChildren.item(0),
+            field = contentBoxChildren.item(1);
+        Y.Assert.areEqual("label", label.get("nodeName").toLowerCase());
+        Y.Assert.areEqual("Some field", label.one("span.caption").get("text"));
+        Y.Assert.areEqual("(Required)", label.one("span.required").get("text"));
+        Y.Assert.areEqual("div", field.get("nodeName").toLowerCase());
+        Y.Assert.areEqual("foo", field.one("input.field").get("value"));
+        this.field.set("error", "Invalid");
+        Y.Assert.areEqual("Invalid", field.one("span.error").get("text"));
+    }
+}));
+
+
 Y.Test.Runner.add(suite);
 Y.Test.Runner.run();
 

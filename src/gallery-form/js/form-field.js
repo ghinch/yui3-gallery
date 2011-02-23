@@ -19,11 +19,42 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     FIELD_TEMPLATE : '<input></input>',
 
     /**
+     * @property FormField.FIELD_CLASS
+     * @type String
+     * @description CSS class used to locate a placeholder for
+     *     the field node and style it.
+     */
+    FIELD_CLASS : 'field',
+
+    /**
      * @property FormField.LABEL_TEMPLATE
      * @type String
      * @description Template used to draw a label node
      */
     LABEL_TEMPLATE : '<label></label>',
+
+    /**
+     * @property FormField.LABEL_CLASS
+     * @type String
+     * @description CSS class used to locate a placeholder for
+     *     the label node and style it.
+     */
+    LABEL_CLASS : 'label',
+
+    /**
+     * @property FormField.ERROR_TEMPLATE
+     * @type String
+     * @description Template used to draw an error node
+     */
+    ERROR_TEMPLATE : '<span></span>',
+
+    /**
+     * @property FormField.ERROR_CLASS
+     * @type String
+     * @description CSS class used to locate a placeholder for
+     *     the error node and style it.
+     */
+    ERROR_CLASS : 'error',
 
     /**
      * @property _labelNode
@@ -120,6 +151,32 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     },
 
     /**
+     * @method _renderNode
+     * @protected
+     * @description Helper method to render new nodes, possibly replacing
+     *     markup placeholders.
+     */
+    _renderNode : function (nodeTemplate, nodeClass, nodeBefore) {
+        var contentBox = this.get('contentBox'),
+            node = Y.Node.create(nodeTemplate),
+            placeHolder = contentBox.one('.' + nodeClass);
+
+        node.addClass(nodeClass);
+
+        if (placeHolder) {
+            placeHolder.replace(node);
+        } else {
+            if (nodeBefore) {
+                contentBox.insertBefore(node, nodeBefore);
+            } else {
+                contentBox.appendChild(node);
+            }
+        }
+
+        return node;
+    },
+
+    /**
      * @method _renderLabelNode
      * @protected
      * @description Draws the form field's label node into the contentBox
@@ -132,8 +189,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
         labelNode = contentBox.one('label');
 
         if (!labelNode || labelNode.get('for') != this.get('id')) {
-            labelNode = Y.Node.create(this.LABEL_TEMPLATE);
-            contentBox.appendChild(labelNode);
+            labelNode = this._renderNode(this.LABEL_TEMPLATE, this.LABEL_CLASS);
         }
 
         this._labelNode = labelNode;
@@ -149,8 +205,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
         field = contentBox.one('#' + this.get('id'));
 
         if (!field) {
-            field = Y.Node.create(this.FIELD_TEMPLATE);
-            contentBox.appendChild(field);
+            field = this._renderNode(this.FIELD_TEMPLATE, this.FIELD_CLASS);
         }
 
         this._fieldNode = field;
@@ -162,17 +217,19 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Syncs the the label node and this instances attributes
      */
     _syncLabelNode: function() {
-        var required = this.get('required'),
+        var label = this.get('label'),
+            required = this.get('required'),
             requiredLabel = this.get('requiredLabel');
         if (this._labelNode) {
-            this._labelNode.setAttrs({
-                innerHTML: this.get('label')
-            });
-            this._labelNode.setAttribute('for', this.get('id') + Y.FormField.FIELD_ID_SUFFIX);
+            this._labelNode.set("text", "");
+            if (label) {
+                this._labelNode.append("<span class='caption'>" + label + "</span>"); 
+            }
             if (required && requiredLabel) {
                 this._labelNode.append("<span class='separator'> </span>");
                 this._labelNode.append("<span class='required'>" + requiredLabel + "</span>");
             }
+            this._labelNode.setAttribute('for', this.get('id') + Y.FormField.FIELD_ID_SUFFIX);
         }
     },
 
@@ -240,11 +297,9 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      */
     _showError: function(errMsg) {
         var contentBox = this.get('contentBox'),
-        errorNode = Y.Node.create('<span>' + errMsg + '</span>');
+            errorNode = this._renderNode(this.ERROR_TEMPLATE, this.ERROR_CLASS, this._labelNode);
 
-        errorNode.addClass('error');
-        contentBox.insertBefore(errorNode, this._labelNode);
-
+        errorNode.set("text", errMsg);
         this._errorNode = errorNode;
     },
 
