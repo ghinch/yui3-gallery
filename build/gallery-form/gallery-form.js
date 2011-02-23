@@ -555,6 +555,22 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     LABEL_CLASS : 'label',
 
     /**
+     * @property FormField.HINT_TEMPLATE
+     * @type String
+     * @description Optionally a template used to draw a hint node. Derived
+     *     classes can use it to provide additional information about the field
+     */
+    HINT_TEMPLATE : '',
+
+    /**
+     * @property FormField.HINT_CLASS
+     * @type String
+     * @description CSS class used to locate a placeholder for
+     *     the hint node and style it.
+     */
+    HINT_CLASS : 'hint',
+
+    /**
      * @property FormField.ERROR_TEMPLATE
      * @type String
      * @description Template used to draw an error node
@@ -576,6 +592,14 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description The label node for this form field
      */
     _labelNode: null,
+
+     /**
+     * @property _hintNode
+     * @protected
+     * @type Object
+     * @description The hint node with extra text describing the field
+     */    
+    _hintNode : null,
 
     /**
      * @property _fieldNode
@@ -669,6 +693,9 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      *     markup placeholders.
      */
     _renderNode : function (nodeTemplate, nodeClass, nodeBefore) {
+        if (!nodeTemplate) {
+            return null;
+        }
         var contentBox = this.get('contentBox'),
             node = Y.Node.create(nodeTemplate),
             placeHolder = contentBox.one('.' + nodeClass);
@@ -694,9 +721,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Draws the form field's label node into the contentBox
      */
     _renderLabelNode: function() {
-        if (!this.LABEL_TEMPLATE) {
-            return;
-        }
         var contentBox = this.get('contentBox'),
         labelNode = contentBox.one('label');
 
@@ -705,6 +729,18 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
         }
 
         this._labelNode = labelNode;
+    },
+
+    /**
+     * @method _renderHintNode
+     * @protected
+     * @description Draws the hint node into the contentBox. If a node is
+     *     found in the contentBox with class HINT_CLASS, it will be
+     *     considered a markup placeholder and replaced with the hint node.
+     */
+    _renderHintNode : function () {
+        this._hintNode = this._renderNode(this.HINT_TEMPLATE,
+                                          this.HINT_CLASS);
     },
 
     /**
@@ -746,7 +782,18 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     },
 
     /**
-     * @method _syncLabelNode
+     * @method _syncHintNode
+     * @protected
+     * @description Syncs the hintNode
+     */
+    _syncHintNode : function () {
+        if (this._hintNode) {
+            this._hintNode.set("text", this.get("hint"));
+        }
+    },
+
+    /**
+     * @method _syncFieldNode
      * @protected
      * @description Syncs the fieldNode and this instances attributes
      */
@@ -895,6 +942,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     renderUI: function() {
         this._renderLabelNode();
         this._renderFieldNode();
+        this._renderHintNode();
     },
 
     bindUI: function() {
@@ -951,6 +999,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
     syncUI: function() {
         this.get('boundingBox').removeAttribute('tabindex');
         this._syncLabelNode();
+        this._syncHintNode();
         this._syncFieldNode();
         this._syncError();
         this._syncDisabled();
@@ -1015,6 +1064,17 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
             validator: Y.Lang.isString
         },
 
+        /**
+         * @attribute hint
+         * @type String
+         * @default ""
+         * @description Extra text explaining what the field is about.
+         */
+        hint : {
+            value : '',
+            validator : Y.Lang.isString
+        },
+        
         /**
          * @attribute validator
          * @type Function

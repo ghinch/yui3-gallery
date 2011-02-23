@@ -138,7 +138,10 @@ Y.extend(CustomFormField, Y.FormField, {
                        "      <span class='error'></span>",
                        "    </div>",
                        "  </div>",
-                       "</div>"].join("")
+                       "  <span class='hint'></span>",
+                       "</div>"].join(""),
+
+    HINT_TEMPLATE: "<div></div>"
 });
 
 
@@ -153,6 +156,7 @@ suite.add(new Y.Test.Case({
         this.field = new CustomFormField({boundingBox: boundingBox,
                                           name: "some-field",
                                           label: "Some field",
+                                          hint: "Very nice field",
                                           required: true,
                                           requiredLabel: "(Required)",
                                           value: "foo"});
@@ -165,12 +169,15 @@ suite.add(new Y.Test.Case({
         var contentBox = this.field.get("contentBox"),
             contentBoxChildren = contentBox.get("children"),
             label = contentBoxChildren.item(0),
-            field = contentBoxChildren.item(1);
+            field = contentBoxChildren.item(1),
+            hint = contentBoxChildren.item(2);
         Y.Assert.areEqual("label", label.get("nodeName").toLowerCase());
         Y.Assert.areEqual("Some field", label.one("span.caption").get("text"));
         Y.Assert.areEqual("(Required)", label.one("span.required").get("text"));
         Y.Assert.areEqual("div", field.get("nodeName").toLowerCase());
         Y.Assert.areEqual("foo", field.one("input.field").get("value"));
+        Y.Assert.areEqual("div", hint.get("nodeName").toLowerCase());
+        Y.Assert.areEqual("Very nice field", hint.get("text"));
         this.field.set("error", "Invalid");
         Y.Assert.areEqual("Invalid", field.one("span.error").get("text"));
     }
