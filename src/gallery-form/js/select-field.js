@@ -102,6 +102,18 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
     },
 
     /**
+     * @method _afterChoiceChange
+     * @description When the available options for the select field change,
+     *     the old ones are removed and the new ones are rendered.
+     */
+    _afterChoicesChange: function(evt) {
+        var options = this._fieldNode.all("option");
+        options.remove();
+        this._renderOptionNodes();
+        this._syncOptionNodes();
+    },
+
+    /**
 	 * @method clear
 	 * @description Restores the selected option to the default
 	 */
@@ -111,6 +123,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 
     bindUI: function() {
         Y.SelectField.superclass.constructor.superclass.bindUI.apply(this, arguments);
+        this.after('choicesChange', this._afterChoicesChange);
     },
 
     syncUI: function() {

@@ -72,6 +72,21 @@ suite.add(new Y.Test.Case({
         this.choice.clear();
         Y.ArrayAssert.itemsAreEqual([false, false], inputs.get("checked"));
     },
+
+    // When the 'choices' attribute changes, the widget is refreshed.
+    testChangeChoices: function() {
+        this.choice.set("choices", [{label: "Foo", value: "foo"},
+                                    {label: "Bar", value: "bar"}]);
+        this.choice.render();
+        this.choice.set("choices", [{label: "Egg", value: "egg"}]);
+        var contentBox = this.choice.get("contentBox");
+        var radios = contentBox.all("> div");
+        Y.Assert.areEqual(1, radios.size());
+        var label = radios.item(0).one("label");
+        var input = radios.item(0).one("input");
+        Y.Assert.areEqual("Egg", label.get("text"));
+        Y.Assert.areEqual("egg", input.get("value"));
+    }
 }));
 
 Y.Test.Runner.add(suite);

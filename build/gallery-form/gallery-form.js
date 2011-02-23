@@ -1562,6 +1562,17 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
         }
     },
 
+    /**
+     * @method _afterChoiceChange
+     * @description When the available choices for the choice field change,
+     *     the old ones are removed and the new ones are rendered.
+     */
+    _afterChoicesChange: function(event) {
+        var contentBox = this.get("contentBox");
+        contentBox.all(".yui3-form-field").remove();
+        this._renderFieldNode();
+    },
+
     clear: function() {
         this._fieldNode.each(function(node, index, list) {
             node.set('checked', false);
@@ -1585,6 +1596,7 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
             this.set('value', value);
         },
         this));
+        this.after('choicesChange', this._afterChoicesChange);
     }
 
 },
@@ -1717,6 +1729,18 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
     },
 
     /**
+     * @method _afterChoiceChange
+     * @description When the available options for the select field change,
+     *     the old ones are removed and the new ones are rendered.
+     */
+    _afterChoicesChange: function(evt) {
+        var options = this._fieldNode.all("option");
+        options.remove();
+        this._renderOptionNodes();
+        this._syncOptionNodes();
+    },
+
+    /**
 	 * @method clear
 	 * @description Restores the selected option to the default
 	 */
@@ -1726,6 +1750,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 
     bindUI: function() {
         Y.SelectField.superclass.constructor.superclass.bindUI.apply(this, arguments);
+        this.after('choicesChange', this._afterChoicesChange);
     },
 
     syncUI: function() {

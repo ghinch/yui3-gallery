@@ -49,6 +49,21 @@ suite.add(new Y.Test.Case({
         this.select.render();
         field = contentBox.one("select");
         Y.Assert.isTrue(field.get("multiple"));
+    },
+
+    // When the 'choices' attribute changes, the widget is refreshed.
+    testChangeChoices: function() {
+        this.select.set("choices", [{label: "Foo", value: "foo"},
+                                    {label: "Bar", value: "bar"}]);
+        this.select.render();
+        this.select.set("choices", [{label: "Egg", value: "egg"}]);
+        var contentBox = this.select.get("contentBox");
+        var options = contentBox.all("option");
+        Y.Assert.areEqual(2, options.size());
+        Y.Assert.areEqual("Choose one", options.item(0).get("text"));        
+        Y.Assert.areEqual("", options.item(0).get("value"));        
+        Y.Assert.areEqual("Egg", options.item(1).get("text"));        
+        Y.Assert.areEqual("egg", options.item(1).get("value"));        
     }
 }));
 
