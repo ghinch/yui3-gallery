@@ -51,6 +51,21 @@ suite.add(new Y.Test.Case({
         var buttonNode = contentBox.one("button");
         Y.Assert.areEqual("Press me", buttonNode.get("text"));
         Y.Assert.areEqual(this.button.get("id") + "-field", buttonNode.get("id"));
+    },
+
+    // If the message attribute is set, the button prompts for confirmation.
+    testOnClickWithConfirm: function() {
+        var messages = [];
+        this.button.set("message", "Really?");
+        this.button.set("confirm", function(message) {
+            messages.push(message);
+            return true;
+        });
+        var contentBox = this.button.get("contentBox");
+        var buttonNode = contentBox.one("button");
+        this.button.set("onclick", {fn: function() {}});
+        buttonNode.simulate("click");
+        Y.ArrayAssert.itemsAreEqual(["Really?"], messages);
     }
 }));
 

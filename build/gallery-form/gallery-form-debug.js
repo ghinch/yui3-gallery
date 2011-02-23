@@ -1814,9 +1814,21 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
             return;
         }
 
-        var oc = this.get('onclick');
         Y.Event.purgeElement(this._fieldNode, true, 'click');
-        Y.on('click', Y.bind(oc.fn, oc.scope, true), this._fieldNode);
+        Y.on('click', Y.bind(this._promptConfirm, this), this._fieldNode);
+    },
+
+    _promptConfirm: function(event) {
+        event.preventDefault();
+        var message = this.get("message");
+        var onclick = this.get("onclick");
+
+        if (message) {
+            if (!this.get("confirm")(message)) {
+                return;
+            }
+        }
+        onclick.fn.apply(onclick.scope);
     },
 
     bindUI : function () {
@@ -1846,6 +1858,32 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
                 val.argument = val.argument || {};
                 return val;
             }
+        },
+
+        /** 
+         * @attribute message
+         * @type String
+         * @default null
+         * @description Optional confirmation message to be passed to the
+         *     confirm function.
+         */
+        message: {
+            validator : Y.Lang.isString,
+            value: null
+        },
+
+        /** 
+         * @attribute confirm
+         * @type Function
+         * @default null
+         * @description Optional confirmation function called when the button
+         *     is clicked. It will be be passed the string set in the 'message'
+         *     attribute. If it returns 'true' the the onclick handler will be
+         *     called, otherwise it will be skipped.
+         */
+        confirm:  {
+            validator : Y.Lang.isFunction,
+            value: null
         }
     }
 });
