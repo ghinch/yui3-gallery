@@ -53,9 +53,10 @@ suite.add(new Y.Test.Case({
         var contentBox = this.field.get("contentBox");
         var error = contentBox.one("label").previous();
         Y.Assert.areEqual("span", error.get("nodeName").toLowerCase());
+        Y.Assert.isTrue(error.hasClass("error"));
         Y.Assert.areEqual("Bad value", error.get("text"));
         this.field.set("error", null);
-        Y.Assert.isNull(contentBox.one("span"));
+        Y.Assert.isNull(contentBox.one("span.error"));
     },
 
     // If the 'validateInline' attribute is set, the field value is validated
@@ -68,12 +69,12 @@ suite.add(new Y.Test.Case({
         var input = contentBox.one("input");
         input.set("value", "foo");
         input.simulate("blur");
-        Y.Assert.isNotNull(contentBox.one("span"));
+        Y.Assert.isNotNull(contentBox.one("span.error"));
         this.field.set("error", null);
         this.field.set("validateInline", false);
         input.set("value", "bar");
         input.simulate("blur");
-        Y.Assert.isNull(contentBox.one("span"));
+        Y.Assert.isNull(contentBox.one("span.error"));
     },
 
     // If the 'validateInline' attribute is set, the field value is validated
@@ -101,6 +102,20 @@ suite.add(new Y.Test.Case({
         Y.Assert.areEqual("nice-field", input.get("name"));
         Y.Assert.areEqual("Nice value", input.get("value"));
         Y.Assert.areEqual(id + "-field", input.get("id"));
+    },
+
+    // With the 'requiredLabel' attribute it's possible to specify some
+    // custom text to be appended to the label caption for required fields.
+    testRequiredLabel: function() {
+        this.field.set("required", true);
+        this.field.set("requiredLabel", "(Required)");
+        this.field.set("label", "Nice field");
+        this.field.syncUI();
+        var contentBox = this.field.get("contentBox");
+        var label = contentBox.one("label");
+        var required = label.one("span.required");
+        Y.Assert.areEqual("(Required)", required.get("text"));
+        Y.Assert.isTrue(required.hasClass("required"));
     }
 }));
 

@@ -162,11 +162,17 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Syncs the the label node and this instances attributes
      */
     _syncLabelNode: function() {
+        var required = this.get('required'),
+            requiredLabel = this.get('requiredLabel');
         if (this._labelNode) {
             this._labelNode.setAttrs({
                 innerHTML: this.get('label')
             });
             this._labelNode.setAttribute('for', this.get('id') + Y.FormField.FIELD_ID_SUFFIX);
+            if (required && requiredLabel) {
+                this._labelNode.append("<span class='separator'> </span>");
+                this._labelNode.append("<span class='required'>" + requiredLabel + "</span>");
+            }
         }
     },
 
@@ -493,6 +499,17 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
         validateInline: {
             value: false,
             validator: Y.Lang.isBoolean
+        },
+
+        /**
+         * @attribute requiredLabel
+         * @type String
+         * @description Text to append to the labal caption for a required
+         *     field, by default nothing will be appended.
+         */
+        requiredLabel : {
+            value : '',
+            validator : Y.Lang.isString
         }
     },
 
