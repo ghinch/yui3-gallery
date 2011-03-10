@@ -89,6 +89,65 @@ suite.add(new Y.Test.Case({
     }
 }));
 
+
+var CustomRadioField = function(config) {
+    CustomRadioField.superclass.constructor.apply(this, arguments);
+};
+
+CustomRadioField.NAME = "radio-field";
+
+Y.extend(CustomRadioField, Y.RadioField, {
+
+    CONTENT_TEMPLATE: ["<div class='custom-choice'>",
+                       "  <span class='field'></span>",
+                       "  <span class='label'></span>",
+                       "</div>"].join("")
+});
+
+
+var CustomChoiceField = function(config) {
+    CustomChoiceField.superclass.constructor.apply(this, arguments);
+};
+
+CustomChoiceField.NAME = "custom-choice-field";
+
+Y.extend(CustomChoiceField, Y.ChoiceField, {
+
+    SINGLE_CHOICE: CustomRadioField,
+    CONTENT_TEMPLATE: ["<div>",
+                       "  <div>",
+                       "    <div class='field'></div>",
+                       "  </div>",
+                       "</div>"].join("")
+});
+
+
+suite.add(new Y.Test.Case({
+
+    name: "CustomChoiceFieldTest",
+
+    setUp: function() {
+        var boundingBox = Y.Node.create("<div></div>");
+        var scaffolding = Y.one("#scaffolding");
+        scaffolding.setContent(boundingBox);
+        this.field = new CustomChoiceField({boundingBox: boundingBox,
+                                            name: "some-field",
+                                            choices: [{label: "Foo", value: "foo"},
+                                                      {label: "Bar", value: "bar"}]});
+        this.field.render();
+    },
+
+    // If a placeholder node is found for the field node, the choice widgets
+    // are appended to it.
+    testRenderUI: function() {
+        var contentBox = this.field.get("contentBox"),
+            parent = contentBox.one(".field"),
+            choices = parent.get("children");
+        Y.Assert.areEqual(2, choices.size());
+        Y.Assert.isTrue(choices.item(0).one("div").hasClass("custom-choice"));
+    }
+}));
+
 Y.Test.Runner.add(suite);
 Y.Test.Runner.run();
 

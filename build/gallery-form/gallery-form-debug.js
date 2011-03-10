@@ -1491,6 +1491,8 @@ Y.TextareaField = Y.Base.create('textarea-field', Y.FormField, [Y.WidgetChild], 
 Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.WidgetChild], {
 
     LABEL_TEMPLATE: '<span></span>',
+    SINGLE_CHOICE: Y.RadioField,
+    MULTI_CHOICE: Y.CheckboxField,
 
     /**
      * @method _validateChoices
@@ -1532,10 +1534,14 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
 
     _renderFieldNode: function() {
         var contentBox = this.get('contentBox'),
-        choices = this.get('choices'),
-        multiple = this.get('multi'),
-        fieldType = (multiple === true ? Y.CheckboxField: Y.RadioField);
+            parent = contentBox.one("." + this.FIELD_CLASS),
+            choices = this.get('choices'),
+            multiple = this.get('multi'),
+            fieldType = (multiple === true ? this.MULTI_CHOICE: this.SINGLE_CHOICE);
 
+        if (!parent) {
+            parent = contentBox;
+        }
         Y.Array.each(choices,
         function(c, i, a) {
             var cfg = {
@@ -1546,9 +1552,9 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
             },
             field = new fieldType(cfg);
 
-            field.render(contentBox);
+            field.render(parent);
         }, this);
-        this._fieldNode = contentBox.all('input');
+        this._fieldNode = parent.all('input');
     },
 
     _syncFieldNode: function() {
