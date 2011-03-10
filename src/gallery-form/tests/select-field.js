@@ -38,6 +38,17 @@ suite.add(new Y.Test.Case({
         Y.Assert.areEqual("bar", options.item(2).get("value"));        
     },
 
+    // The SelectField widget can render the default option only.
+    testRenderWithDefaultOnly: function() {
+        var contentBox = this.select.get("contentBox"),
+            options;
+        this.select.set("choices", []);
+        this.select.render();
+        options = contentBox.all("option");
+        Y.Assert.areEqual("Choose one", options.item(0).get("text"));        
+        Y.Assert.areEqual("", options.item(0).get("value"));        
+    },
+
     // If the 'multi' attribute is set to true, the select element
     // will have the 'multiple' property set.
     testRenderWithMulti: function() {

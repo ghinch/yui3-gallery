@@ -1785,6 +1785,24 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
             value: true
         },
 
+        /** 
+         * @attribute choices
+         * @type Array
+         * @description The choices to render into this field
+         */
+        choices: {
+            validator: function(val) {
+                if (this.get("useDefaultOption") &&
+                    Y.Lang.isArray(val) &&
+                    val.length === 0) {
+                    // Empty arrays are okay if useDefaultOption is 'true'
+                    return true;
+                } else {
+                    return this._validateChoices(val);
+                }
+            }
+        },
+
         /**
          * @attribute size
          * @type String
