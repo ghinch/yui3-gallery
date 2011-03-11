@@ -66,6 +66,14 @@ suite.add(new Y.Test.Case({
         this.button.set("onclick", {fn: function() {}});
         buttonNode.simulate("click");
         Y.ArrayAssert.itemsAreEqual(["Really?"], messages);
+    },
+
+    // It's possible to toggle the disabled state of a FormButton.
+    testDisable: function() {
+        this.button.disable();
+        var contentBox = this.button.get("contentBox");
+        var buttonNode = contentBox.one("button");
+        Y.Assert.areEqual("disabled", buttonNode.getAttribute("disabled"));
     }
 }));
 

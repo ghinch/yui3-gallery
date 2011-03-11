@@ -36,6 +36,7 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 
     bindUI : function () {
         this.after('onclickChange', Y.bind(this._setClickHandler, this, true));
+        this.after('disabledChange', this._syncDisabled, this);
         this._setClickHandler();
     }
 }, {
