@@ -357,8 +357,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      */
     _clearError: function() {
         if (this._errorNode) {
-            var contentBox = this.get('contentBox');
-            contentBox.removeChild(this._errorNode);
+            this._errorNode.remove();
             this._errorNode = null;
         }
     },
