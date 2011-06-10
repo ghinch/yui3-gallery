@@ -343,8 +343,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Adds an error node with the supplied message
      */
     _showError: function(errMsg) {
-        var contentBox = this.get('contentBox'),
-            errorNode = this._renderNode(this.ERROR_TEMPLATE, this.ERROR_CLASS, this._labelNode);
+        var errorNode = this._renderNode(this.ERROR_TEMPLATE, this.ERROR_CLASS, this._labelNode);
 
         errorNode.set("text", errMsg);
         this._errorNode = errorNode;
@@ -808,7 +807,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      */
     INVALID_SPECIAL_CHARS: "Please use only letters and numbers",
 
-    /**
     /**
      * @property FormField.REQUIRED_ERROR_TEXT
      * @type String

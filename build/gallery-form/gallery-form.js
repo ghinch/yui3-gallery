@@ -248,6 +248,7 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
             var formAction = this.get('action'),
             formMethod = this.get('method'),
             submitViaIO = this.get('submitViaIO'),
+            io = this.get("io"),
             transaction,
             cfg;
 
@@ -260,7 +261,6 @@ Y.Form = Y.Base.create('form', Y.Widget, [Y.WidgetParent], {
                     }
                 };
 
-                var io = this.get("io");
                 transaction = io(formAction, cfg);
                 this._ioIds[transaction.id] = transaction;
             } else {
@@ -855,8 +855,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Adds an error node with the supplied message
      */
     _showError: function(errMsg) {
-        var contentBox = this.get('contentBox'),
-            errorNode = this._renderNode(this.ERROR_TEMPLATE, this.ERROR_CLASS, this._labelNode);
+        var errorNode = this._renderNode(this.ERROR_TEMPLATE, this.ERROR_CLASS, this._labelNode);
 
         errorNode.set("text", errMsg);
         this._errorNode = errorNode;
@@ -1320,7 +1319,6 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      */
     INVALID_SPECIAL_CHARS: "Please use only letters and numbers",
 
-    /**
     /**
      * @property FormField.REQUIRED_ERROR_TEXT
      * @type String
@@ -1839,8 +1837,8 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 
     _promptConfirm: function(event) {
         event.preventDefault();
-        var message = this.get("message");
-        var onclick = this.get("onclick");
+        var message = this.get("message"),
+            onclick = this.get("onclick");
 
         if (message) {
             if (!this.get("confirm")(message)) {

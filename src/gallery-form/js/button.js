@@ -23,8 +23,8 @@ Y.FormButton = Y.Base.create('button-field', Y.FormField, [Y.WidgetChild], {
 
     _promptConfirm: function(event) {
         event.preventDefault();
-        var message = this.get("message");
-        var onclick = this.get("onclick");
+        var message = this.get("message"),
+            onclick = this.get("onclick");
 
         if (message) {
             if (!this.get("confirm")(message)) {
