@@ -1729,6 +1729,10 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
             }
         },
         this);
+
+        if (!currentVal && !useDefaultOption) {
+            this.set('value', choices[0].value);
+        }
     },
 
     /**
