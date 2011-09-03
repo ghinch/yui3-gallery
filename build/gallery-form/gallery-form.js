@@ -1524,9 +1524,9 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
                 continue;
             }
             if (!val[i].label ||
-            !Y.Lang.isString(val[i].label) ||
+            (!Y.Lang.isString(val[i].label) && !Y.Lang.isNumber(val[i].value)) ||
             !val[i].value ||
-            !Y.Lang.isString(val[i].value)) {
+            (!Y.Lang.isString(val[i].value) && !Y.Lang.isNumber(val[i].value))) {
                 delete val[i];
                 continue;
             }
