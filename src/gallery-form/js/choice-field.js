@@ -136,6 +136,9 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
          * @description The choices to render into this field
          */
         choices: {
+            valueFn : function () {
+                return [];
+            },
             validator: function(val) {
                 return this._validateChoices(val);
             }

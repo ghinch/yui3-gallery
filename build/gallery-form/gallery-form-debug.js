@@ -1629,6 +1629,9 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
          * @description The choices to render into this field
          */
         choices: {
+            valueFn : function () {
+                return [];
+            },
             validator: function(val) {
                 return this._validateChoices(val);
             }
@@ -1748,7 +1751,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
         },
         this);
 
-        if (!currentVal && !useDefaultOption) {
+        if (!currentVal && !useDefaultOption && choices[0]) {
             this.set('value', choices[0].value);
         }
     },

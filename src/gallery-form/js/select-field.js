@@ -100,7 +100,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
         },
         this);
 
-        if (!currentVal && !useDefaultOption) {
+        if (!currentVal && !useDefaultOption && choices[0]) {
             this.set('value', choices[0].value);
         }
     },
