@@ -1380,6 +1380,11 @@ Y.CheckboxField = Y.Base.create('checkbox-field', Y.FormField, [Y.WidgetChild], 
         Y.CheckboxField.superclass.initializer.apply(this, arguments);
     },
 
+    renderUI : function () {
+        this._renderFieldNode();
+        this._renderLabelNode();
+    },
+
     syncUI : function () {
         Y.CheckboxField.superclass.syncUI.apply(this, arguments);
         this._syncChecked();
@@ -1534,10 +1539,6 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
                 delete val[i];
                 continue;
             }
-        }
-
-        if (val.length === 0) {
-            return false;
         }
 
         return true;
@@ -1720,7 +1721,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 	 * @description Syncs the option nodes with the choices attribute
 	 */
     _syncOptionNodes: function() {
-        var choices = this.get('choices'),
+        var choices = this.get('choices') || [],
         contentBox = this.get('contentBox'),
         options = contentBox.all('option'),
         useDefaultOption = this.get('useDefaultOption'),

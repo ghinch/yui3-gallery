@@ -43,10 +43,6 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
             }
         }
 
-        if (val.length === 0) {
-            return false;
-        }
-
         return true;
     },
 
