@@ -69,7 +69,7 @@ Y.SelectField = Y.Base.create('select-field', Y.ChoiceField, [Y.WidgetParent, Y.
 	 * @description Syncs the option nodes with the choices attribute
 	 */
     _syncOptionNodes: function() {
-        var choices = this.get('choices'),
+        var choices = this.get('choices') || [],
         contentBox = this.get('contentBox'),
         options = contentBox.all('option'),
         useDefaultOption = this.get('useDefaultOption'),
