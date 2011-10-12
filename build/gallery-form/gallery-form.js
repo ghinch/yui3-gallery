@@ -816,7 +816,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @description Syncs the fieldNode and this instances attributes
      */
     _syncFieldNode: function() {
-        var nodeType = this.name.split('-')[0];
+        var nodeType = this.INPUT_TYPE || this.name.split('-')[0];
         if (!nodeType) {
             return;
         }
