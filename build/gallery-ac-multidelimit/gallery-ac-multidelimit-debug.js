@@ -182,4 +182,8 @@ Y.ACMultiQueryDelim = Y.Base.create('ac-multidelim', Y.Plugin.Base, [], {
 
 
 
+<<<<<<< HEAD
 }, '@VERSION@' ,{requires:['autocomplete-list', 'plugin', 'base-build']});
+=======
+}, 'gallery-2011.02.02-21-07' ,{requires:['autocomplete-list', 'plugin', 'base-build']});
+>>>>>>> 2aa48a435037fdc52cf6a95da12b5d2739188817

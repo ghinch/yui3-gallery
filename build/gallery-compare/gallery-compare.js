@@ -120,4 +120,8 @@ Y.aggregate(Y.Compare, {
 });
 
 
+<<<<<<< HEAD
 }, '@VERSION@' ,{requires:['yui']});
+=======
+}, 'gallery-2011.02.16-20-31' ,{requires:['yui']});
+>>>>>>> 2aa48a435037fdc52cf6a95da12b5d2739188817

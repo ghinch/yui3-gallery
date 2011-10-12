@@ -28,7 +28,8 @@ YUI({
     this.accordion1 = new Y.Accordion( {
         srcNode: "#acc1",
         useAnimation: true,
-        collapseOthersOnExpand: true
+        collapseOthersOnExpand: true,
+        itemChosen: ['click', 'mouseenter']
     });
 
 
@@ -235,6 +236,21 @@ YUI({
             items = that.accordion1.get( "items" );
 
             Y.Assert.areSame( item3, items[ 0 ], "The items must be identical" );
+        },
+
+        testCancelRemoveItem: function(){
+            var items, item3;
+
+            that.accordion1.once("beforeItemRemove", function (e) {
+                e.halt();
+            });
+
+            item3 = that.accordion1.removeItem( 3 );
+
+            items = that.accordion1.get( "items" );
+
+            Y.Assert.areSame( 4, items.length, "There must be still 4 items" );
+            Y.Assert.areSame( null, item3, "The return value in case of canceled remove must be null" );
         }
     });
     
@@ -248,7 +264,7 @@ YUI({
             header = Y.Node.getDOMNode(item3.getStdModNode( Y.WidgetStdMod.HEADER ));
             
             Y.Event.simulate( header, "click" );
-            Y.Assert.areSame( true, item3.get( "expanded" ), "Item3 must be exapnded now" );
+            Y.Assert.areSame( true, item3.get( "expanded" ), "Item3 must be expanded now" );
         },
         
         testClickAlwaysVisible: function(){
@@ -261,10 +277,22 @@ YUI({
 
             Y.Event.simulate( iconAlwaysVisible, "click" );
             
-            Y.Assert.areSame( true, item2.get( "expanded" ), "Item3 must be exapnded now" );
+            Y.Assert.areSame( true, item2.get( "expanded" ), "Item3 must be expanded now" );
             Y.Assert.areSame( true, item2.get( "alwaysVisible" ), "Item3 must be always visible" );
 
             Y.Assert.areSame( false, item3.get( "expanded" ), "Item3 must be collapsed now" );
+        },
+
+        testMouseEnter: function(){
+            var item0, header;
+
+            item0 = that.accordion1.getItem( 0 );
+
+            header = Y.Node.getDOMNode(item0.getStdModNode( Y.WidgetStdMod.HEADER ));
+
+            Y.Event.simulate( header, "mouseover" );
+
+            Y.Assert.areSame( false, item0.get( "expanded" ), "Item0 must be collapsed now" );
         }
         
     });
@@ -540,9 +568,27 @@ YUI({
         }
     });
 
+
+    var testStopEvents = new Y.Test.Case({
+        testPreventItemChosen: function(){
+            var item1, header;
+
+            item1 = that.accordion2.getItem( 0 );
+            header = Y.Node.getDOMNode(item1.getStdModNode( Y.WidgetStdMod.HEADER ));
+
+            that.accordion2.once('itemChosen', function(event){
+                event.preventDefault();
+            });
+
+            Y.Event.simulate( header, "click" );
+
+            Y.Assert.areSame( true, item1.get( "expanded" ), "Item3 must be expanded now" );
+        }
+    });
     
     Y.Test.Runner.add(testDataAttr);
     Y.Test.Runner.add(testChangeContent);
+    Y.Test.Runner.add(testStopEvents);
 
     Y.Test.Runner.on( 'complete', function( resCont ){
         var color;

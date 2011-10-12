@@ -41,4 +41,8 @@ Y.ACListScaler = Y.Base.create('ac-list-scaler', Y.Plugin.Base, [], {
 });
 
 
+<<<<<<< HEAD
 }, '@VERSION@' ,{requires:['base-build', 'plugin', 'autocomplete-list']});
+=======
+}, 'gallery-2011.02.02-21-07' ,{requires:['base-build', 'plugin', 'autocomplete-list']});
+>>>>>>> 2aa48a435037fdc52cf6a95da12b5d2739188817

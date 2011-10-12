@@ -206,14 +206,49 @@ button {
         "NodeList.first should return the same as Y.one": function() {
             var optFromNode = Y.one("#test-select option"),
                 optFromFirst = Y.all("#test-select option").first();
-
+            
+            Assert.isInstanceOf(Y.Node, optFromFirst, "First did not return a Y.Node");
             Assert.areEqual(optFromNode, optFromFirst);
+        },
+        "NodeList.first with a numeric argument should return a new NodeList containing the first 'x' items in the NodeList": function() {
+            var nl = Y.all("#test-select option"),
+                sublist = nl.first(3);
+
+            Assert.areEqual(3, sublist.size());
+            Assert.areEqual(nl.item(0), sublist.item(0));
+            Assert.areEqual(nl.item(1), sublist.item(1));
+            Assert.areEqual(nl.item(2), sublist.item(2));
+        },
+        "NodeList.last with a numeric argument should return a new NodeList containing the last 'x' items in the NodeList": function() {
+            var nl = Y.all("#test-select option"),
+                sublist = nl.last(3),
+                length = nl.size();
+
+            Assert.areEqual(3, sublist.size());
+            Assert.areEqual(nl.item(length-1), sublist.item(2));
+            Assert.areEqual(nl.item(length-2), sublist.item(1));
+            Assert.areEqual(nl.item(length-3), sublist.item(0));
         },
         "NodeList.last should return the same as Y.one with the :last-child modifier": function() {
             var optFromNode = Y.one("#test-select option:last-child"),
                 optFromLast = Y.all("#test-select option").last();
 
+            Assert.isInstanceOf(Y.Node, optFromLast, "Last did not return a Y.Node");
             Assert.areEqual(optFromNode, optFromLast);
+        },
+        "NodeList.first with a function should return a Y.Node": function() {
+            var optFromNode = Y.one("#test-select option"),
+                optFromFirst = Y.all("#test-select option").first(function(node) { return true; });
+            
+            Assert.isInstanceOf(Y.Node, optFromFirst, "First did not return a Y.Node");
+            Assert.areEqual(optFromNode.get('yuid'), optFromFirst.get('yuid'));
+        },
+        "NodeList.last with a function should return a Y.Node": function() {
+            var optFromNode = Y.one("#test-select option:last-child"),
+                optFromLast = Y.all("#test-select option").last(function(node) { return true; });
+
+            Assert.isInstanceOf(Y.Node, optFromLast, "Last did not return a Y.Node");
+            Assert.areEqual(optFromNode.get('yuid'), optFromLast.get('yuid'));
         }
     })); 
     Y.Test.Runner.add(suite);
