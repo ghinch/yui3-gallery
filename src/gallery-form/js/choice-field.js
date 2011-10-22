@@ -59,6 +59,7 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
         Y.Array.each(choices,
         function(c, i, a) {
             var cfg = {
+                checked : c.checked,
                 value: c.value,
                 id: (this.get('id') + '_choice' + i),
                 name: this.get('name'),
@@ -108,9 +109,11 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
 
     bindUI: function() {
         this._fieldNode.on('change', Y.bind(function(e) {
-            var value = '';
+            var value = '',
+                type = this.get('multi') ? 'checkbox' : 'radio';
+
             this._fieldNode.each(function(node, index, list) {
-                if (node.get('checked') === true) {
+                if (node.get('type') == type && node.get('checked') === true) {
                     if (value.length > 0) {
                         value += ',';
                     }
