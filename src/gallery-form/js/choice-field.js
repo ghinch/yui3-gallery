@@ -76,19 +76,23 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
         var choices = this.get('value').split(',');
 
         if (choices && choices.length > 0) {
-            Y.Array.each(choices, function(choice) {
-                this._fieldNode.each(function(node, index, list) {
-                    if (Y.Lang.trim(node.get('value')) == Y.Lang.trim(choice)) {
-                        node.set('checked', true);
-                        return true;
-                    }
-                }, this);
-            }, this);
+            choices = Y.Array.map(choices, function(choice) {
+                return Y.Lang.trim(choice);
+            });
+
+            this._fieldNode.each(function(node, index, list) {
+                var nodeValue = Y.Lang.trim(node.get('value'));
+                if (!!~Y.Array.indexOf(choices, nodeValue)) {
+                    node.set('checked', true);
+                } else {
+                    node.set('checked', false);
+                }
+            });
         }
     },
 
     /**
-     * @method _afterChoiceChange
+     * @method _afterChoicesChange
      * @description When the available choices for the choice field change,
      *     the old ones are removed and the new ones are rendered.
      */
@@ -120,10 +124,16 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
                     value += node.get('value');
                 }
             }, this);
-            this.set('value', value);
+            this.set('value', value, {fromUI : true});
         },
         this));
         this.after('choicesChange', this._afterChoicesChange);
+
+        this.after('valueChange', function (e) {
+            if (!e.fromUI) {
+                this._syncFieldNode();
+            }
+        });
     }
 
 },
