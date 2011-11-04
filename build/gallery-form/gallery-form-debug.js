@@ -547,7 +547,7 @@ Y.FormField = Y.Base.create('form-field', Y.Widget, [Y.WidgetParent, Y.WidgetChi
      * @type String
      * @description Template used to render the field node
      */
-    FIELD_TEMPLATE : '<input></input>',
+    FIELD_TEMPLATE : '<input>',
 
     /**
      * @property FormField.FIELD_CLASS
@@ -1578,19 +1578,23 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
         var choices = this.get('value').split(',');
 
         if (choices && choices.length > 0) {
-            Y.Array.each(choices, function(choice) {
-                this._fieldNode.each(function(node, index, list) {
-                    if (Y.Lang.trim(node.get('value')) == Y.Lang.trim(choice)) {
-                        node.set('checked', true);
-                        return true;
-                    }
-                }, this);
-            }, this);
+            choices = Y.Array.map(choices, function(choice) {
+                return Y.Lang.trim(choice);
+            });
+
+            this._fieldNode.each(function(node, index, list) {
+                var nodeValue = Y.Lang.trim(node.get('value'));
+                if (!!~Y.Array.indexOf(choices, nodeValue)) {
+                    node.set('checked', true);
+                } else {
+                    node.set('checked', false);
+                }
+            });
         }
     },
 
     /**
-     * @method _afterChoiceChange
+     * @method _afterChoicesChange
      * @description When the available choices for the choice field change,
      *     the old ones are removed and the new ones are rendered.
      */
@@ -1622,10 +1626,16 @@ Y.ChoiceField = Y.Base.create('choice-field', Y.FormField, [Y.WidgetParent, Y.Wi
                     value += node.get('value');
                 }
             }, this);
-            this.set('value', value);
+            this.set('value', value, {fromUI : true});
         },
         this));
         this.after('choicesChange', this._afterChoicesChange);
+
+        this.after('valueChange', function (e) {
+            if (!e.fromUI) {
+                this._syncFieldNode();
+            }
+        });
     }
 
 },
@@ -1969,4 +1979,4 @@ Y.ResetButton = Y.Base.create('reset-button', Y.FormField, [Y.WidgetChild], {
 });
 
 
-}, '@VERSION@' ,{requires:['node', 'widget-base', 'widget-htmlparser', 'io-form', 'widget-parent', 'widget-child', 'base-build', 'substitute', 'io-upload-iframe']});
+}, '@VERSION@' ,{requires:['node', 'widget-base', 'widget-htmlparser', 'io-form', 'widget-parent', 'widget-child', 'base-build', 'substitute', 'io-upload-iframe', 'collection']});
