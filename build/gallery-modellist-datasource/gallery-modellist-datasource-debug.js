@@ -59,4 +59,4 @@ Y.namespace('Plugin').ModelListDataSource = Y.Base.create('modellist-datasource'
 });
 
 
-}, '@VERSION@' ,{requires:['plugin','base-build','datasource-local','model-list']});
+}, 'gallery-2012.01.04-22-09' ,{requires:['plugin','base-build','datasource-local','model-list']});
