@@ -142,16 +142,13 @@ var default_page_size = 1e9,
 	field_container_class_prefix = field_container_class + '-',
 	field_class_prefix           = Y.ClassNameManager.getClassName(BulkEditor.NAME, 'field') + '-',
 
-	class_re_prefix = '(?:^|\\s)(?:',
-	class_re_suffix = ')(?:\\s|$)',
-
 	status_prefix  = 'bulkedit-has',
 	status_pattern = status_prefix + '([a-z]+)',
-	status_re      = new RegExp(class_re_prefix + status_pattern + class_re_suffix),
+	status_re      = new RegExp(Y.Node.class_re_prefix + status_pattern + Y.Node.class_re_suffix),
 
 	record_status_prefix  = 'bulkedit-hasrecord',
 	record_status_pattern = record_status_prefix + '([a-z]+)',
-	record_status_re      = new RegExp(class_re_prefix + record_status_pattern + class_re_suffix),
+	record_status_re      = new RegExp(Y.Node.class_re_prefix + record_status_pattern + Y.Node.class_re_suffix),
 
 	message_container_class = Y.ClassNameManager.getClassName(BulkEditor.NAME, 'message-text'),
 
@@ -715,14 +712,8 @@ Y.extend(BulkEditor, Y.Widget,
 		{
 			page:       page_errors || [],
 			records:    record_field_errors || [],
-			record_map: {}
+			record_map: Y.Array.toObject(record_field_errors || [], 'id')
 		};
-
-		Y.Array.each(this.server_errors.records, function(r)
-		{
-			this.server_errors.record_map[ r.id ] = r;
-		},
-		this);
 
 		this._updatePageStatus();
 
@@ -1195,16 +1186,7 @@ Y.extend(BulkEditor, Y.Widget,
 
 function cleanHTML(s)
 {
-	if (!s)
-	{
-		return '';
-	}
-
-	return s.toString()
-			.replace(/<\/?script>/ig, '')
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;');
+	return (s ? Y.Escape.html(s) : '');
 }
 
 BulkEditor.error_msg_markup = Y.Lang.sub('<div class="{c}"></div>',
