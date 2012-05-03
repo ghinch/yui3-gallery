@@ -30,27 +30,37 @@
             },
 
             _drawTickMark: function(currentPos, tickColor) {
-                var tickHeight = 3;
-                var topTickOffset = 2;
-                var bottomTickOffset = 15;
+                var axis = this.get('axis');
 
-                var topTickMark = this.graphic.addShape({
+                var topTickMark = this.graphic.addShape((axis === 'x' ? {
                     type: 'rect',
-                        width: 1                                              ,
-                        height: tickHeight,
-                        x: currentPos,
-                        y: topTickOffset
-                    });
+                    width: 1,
+                    height: 3,
+                    x: currentPos,
+                    y: 2 
+                } : {
+                    type: 'rect',
+                    width: 3,
+                    height: 1,
+                    x: 2,
+                    y: currentPos
+                }));
                 topTickMark.set('stroke', { color: tickColor, weight: 1, opacity: 0.5 });
                 topTickMark.set('fill', { color: tickColor, opacity: 0.5 });
 
-                var bottomTickMark = this.graphic.addShape({
+                var bottomTickMark = this.graphic.addShape((axis === 'x' ? {
                     type: 'rect',
-                    width: 1                                              ,
-                    height: tickHeight,
+                    width: 1,
+                    height: 3,
                     x: currentPos,
-                    y: bottomTickOffset
-                });
+                    y: 15 
+                } : {
+                    type: 'rect',
+                    width: 3,
+                    height: 1,
+                    x: 15,
+                    y: currentPos
+                }));
                 bottomTickMark.set('stroke', { color: tickColor, weight: 1, opacity: 0.5 });
                 bottomTickMark.set('fill', { color: tickColor, opacity: 0.5 });
             }
