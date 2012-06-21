@@ -40,8 +40,6 @@ YUI.add('gallery-placeholder', function(Y) {
         _setUIPlaceholder : function (text, hideOnFocus) {
             var host = this.get('host');
 
-            host.set('value', '');
-
             if (hideOnFocus) {
                 if (this._keydownListener) {
                     this._keydownListener.detach();
@@ -83,8 +81,20 @@ YUI.add('gallery-placeholder', function(Y) {
 
             this._setUIPlaceholder(this.get('text'), this.get('hideOnFocus'));
 
+            if (!this._vcHandler) {
+                this._vcHandler = host.on('valueChange', function (e) {
+                    if (e.newVal) {
+                        this.hide();
+                    }
+                }, this);
+            }
+
             if (!this._blurListener) {
-                this._blurListener = host.on('blur', this.show, this);
+                this._blurListener = host.on('blur', function () {
+                    Y.later(300, this, function () {
+                        this.show();
+                    });
+                }, this);
             }
         },
 
@@ -117,4 +127,4 @@ YUI.add('gallery-placeholder', function(Y) {
     });
 
 
-}, '@VERSION@' ,{requires:['node', 'base-build', 'plugin', 'classnamemanager' ]});
+}, '@VERSION@' ,{requires:['node', 'base-build', 'plugin', 'classnamemanager', 'event-valuechange']});
